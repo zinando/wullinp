@@ -8,7 +8,7 @@
         <h2 class="text-2xl font-semibold text-center text-pink-500">Create an Account</h2>
         <p class="text-gray-600 text-sm text-center mb-4">Sign up to start creating your wishlist</p>
 
-        <form method="POST" action="" class="space-y-4">
+        <form id="userRegisterationForm" method="POST" action="" class="space-y-4" onsubmit="return validateForm()">
             {% csrf_token %}
 
             <!-- First Name -->
@@ -39,6 +39,27 @@
                     class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-pink-400 focus:outline-none">
             </div>
 
+            <!-- Password -->
+            <div>
+                <label for="password" class="block text-gray-700 font-medium">Password</label>
+                <input type="password" id="password" name="password" required
+                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-pink-400 focus:outline-none">
+            </div>
+
+            <!-- Confirm Password-->
+            <div>
+                <label for="confirm_password" class="block text-gray-700 font-medium">Confirm Password</label>
+                <input type="password" id="confirm_password" name="confirm_password" required
+                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-pink-400 focus:outline-none">
+            </div>
+
+            <!-- Error Message -->
+            <div id="error_message" class="text-red-500 text-sm">
+                {% if error_message %}
+                {{ error_message }}
+                {% endif %}
+            </div>
+
             <!-- Submit Button -->
             <div class="mt-4">
                 <button type="submit"
@@ -51,8 +72,54 @@
         <!-- Already have an account? -->
         <p class="text-center text-gray-600 text-sm mt-4">
             Already have an account? 
-            <a href="#" class="text-pink-500 font-medium hover:underline">Log in</a>
+            <a href="{% url 'user_login' %}" class="text-pink-500 font-medium hover:underline">Log in</a>
         </p>
     </div>
 </div>
 {% endblock %}
+
+{% block extra_js %}
+<script>
+
+    function validateForm() {
+        let password = document.getElementById("password").value;
+        let confirmPassword = document.getElementById("confirm_password").value;
+        let errorMessage = document.getElementById("error_message");
+        let phone = document.getElementById("phone").value;
+
+        if (phone.length < 11) {
+            errorMessage.textContent = "Phone number must be at least 11 digits long.";
+            return false;
+        }
+
+        if (password.length < 8) {
+            errorMessage.textContent = "Password must be at least 8 characters long.";
+            return false;
+        }
+        if (!/[A-Z]/.test(password)) {
+            errorMessage.textContent = "Password must contain at least one uppercase letter.";
+            return false;
+        }
+        if (!/[a-z]/.test(password)) {
+            errorMessage.textContent = "Password must contain at least one lowercase letter.";
+            return false;
+        }
+        if (!/\d/.test(password)) {
+            errorMessage.textContent = "Password must contain at least one digit.";
+            return false;
+        }
+        if (!/[@$!%*?&#]/.test(password)) {
+            errorMessage.textContent = "Password must contain at least one special character (@$!%*?&).";
+            return false;
+        }
+        if (password !== confirmPassword) {
+            errorMessage.textContent = "Passwords do not match.";
+            return false;
+        }
+
+        return true; // Submit the form if validation passes
+}
+
+
+</script>
+{% endblock %}       
