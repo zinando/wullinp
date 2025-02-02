@@ -1,6 +1,6 @@
-# 🎁 GiftFlow - Multi-Vendor Gifting Platform
+# 🎁 WULLINP - Multi-Vendor Gifting Platform
 
-GiftFlow is a **multi-vendor gifting eCommerce platform** that allows users to create wishlists, receive contributions towards gifts, and send surprise gifts to friends. The platform ensures a seamless gifting experience with progress tracking and gift redemption.
+WULLINP is a **multi-vendor gifting eCommerce platform** that allows users to create wishlists, receive contributions towards gifts, and send surprise gifts to friends. The platform ensures a seamless gifting experience with progress tracking and gift redemption.
 
 ## ✨ Features
 - **User Authentication**: Register and log in using a phone number.
@@ -19,8 +19,7 @@ GiftFlow is a **multi-vendor gifting eCommerce platform** that allows users to c
 ## 🚀 Getting Started
 ### Prerequisites
 - Python 3.10+
-- PostgreSQL (or SQLite for development)
-- Node.js (for frontend development, if needed)
+- PostgreSQL
 
 ### Installation
 ```bash
