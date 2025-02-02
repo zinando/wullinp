@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="bg-gray-100 py-12">
+  <div class="max-w-6xl mx-auto px-4">
+    <h2 class="text-3xl font-semibold text-center mb-8">Featured Products</h2>
+    <div id="product-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+      <!-- Products will be dynamically loaded here -->
+    </div>
+    <div id="loading" class="text-center mt-8">
+      <p class="text-lg text-gray-500">Loading...</p>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  // Variables
+  let page = 1;
+  let loading = false;
+
+  // Function to load products
+  function loadProducts() {
+    if (loading) return;
+    loading = true;
+    $('#loading').show();
+
+    $.ajax({
+      url: "#",  // Your Django URL for loading products
+      data: {
+        'page': page
+      },
+      success: function(response) {
+        const products = response.products;  // Assuming you're sending the products in JSON format
+        if (products.length > 0) {
+          products.forEach(product => {
+            const productCard = `
+              <div class="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition">
+                <img src="${product.image_url}" alt="${product.name}" class="w-full h-64 object-cover rounded-md mb-4">
+                <h3 class="text-lg font-semibold">${product.name}</h3>
+                <p class="text-gray-700">${product.price}</p>
+                <div class="mt-4 flex justify-between items-center">
+                  <button class="bg-blue-500 text-white py-2 px-4 rounded-md" onclick="addToCart(${product.id})">Add to Cart</button>
+                  <button class="bg-gray-500 text-white py-2 px-4 rounded-md" onclick="addToWishlist(${product.id})">Add to Wishlist</button>
+                </div>
+              </div>
+            `;
+            $('#product-list').append(productCard);
+          });
+          page++;
+        } else {
+          $('#loading').text('No more products to load.');
+        }
+        loading = false;
+        $('#loading').hide();
+      },
+      error: function() {
+        loading = false;
+        $('#loading').text('Error loading products.');
+      }
+    });
+  }
+
+  // Function to add to cart
+  function addToCart(productId) {
+    // Handle adding to cart (AJAX call or redirect to cart page)
+    console.log('Added to cart: ' + productId);
+  }
+
+  // Function to add to wishlist
+  function addToWishlist(productId) {
+    // Handle adding to wishlist (AJAX call or redirect to wishlist page)
+    console.log('Added to wishlist: ' + productId);
+  }
+
+  // Lazy load products on scroll
+  $(window).on('scroll', function() {
+    if ($(window).scrollTop() + $(window).height() == $(document).height()) {
+      loadProducts();
+    }
+  });
+
+  // Initial load of products
+  $(document).ready(function() {
+    loadProducts();
+  });
+</script>
+{% endblock %}
