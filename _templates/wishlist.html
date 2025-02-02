@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}My Wishlist - WULLINP{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-4">
+    
+    <!-- Share Wishlist Section -->
+    <div class="bg-white p-4 rounded-lg shadow-md mb-6">
+        <h2 class="text-xl font-semibold text-gray-800">Share Your Wishlist</h2>
+        <div class="flex gap-3 mt-2">
+            <a href="#" class="bg-blue-500 text-white px-3 py-2 rounded-md text-sm flex items-center">
+                <i class="fab fa-facebook-f mr-2"></i> Facebook
+            </a>
+            <a href="#" class="bg-blue-400 text-white px-3 py-2 rounded-md text-sm flex items-center">
+                <i class="fab fa-twitter mr-2"></i> Twitter
+            </a>
+            <a href="#" class="bg-red-500 text-white px-3 py-2 rounded-md text-sm flex items-center">
+                <i class="fab fa-whatsapp mr-2"></i> WhatsApp
+            </a>
+            <button onclick="copyToClipboard()" class="bg-gray-600 text-white px-3 py-2 rounded-md text-sm flex items-center">
+                <i class="fas fa-copy mr-2"></i> Copy Link
+            </button>
+        </div>
+    </div>
+
+    <!-- Wishlist Grid -->
+    {% if wishlist_items %}
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+            {% for item in wishlist_items %}
+            <div class="bg-white p-4 rounded-lg shadow-md">
+                <!-- Thumbnail -->
+                <img src="{{ item.thumbnail_url }}" alt="{{ item.name }}" class="w-full h-32 object-cover rounded-md">
+
+                <!-- Product Details -->
+                <h3 class="text-lg font-semibold mt-2">{{ item.name }}</h3>
+                <p class="text-gray-600">₦{{ item.price }}</p>
+
+                <!-- Progress Bar -->
+                <div class="relative mt-2">
+                    <div class="h-2 bg-gray-300 rounded-full">
+                        <div class="h-2 bg-green-500 rounded-full" style="width: {{ item.progress }}%;"></div>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-1">{{ item.progress }}% funded</p>
+                </div>
+
+                <!-- Buttons -->
+                <div class="mt-3 flex flex-wrap gap-2">
+                    {% if request.user == item.owner %}
+                        <button class="w-full text-white py-1 rounded-md text-sm 
+                            {% if item.progress == 100 %}bg-green-500 hover:bg-green-600{% else %}bg-gray-400 cursor-not-allowed{% endif %}">
+                            Redeem
+                        </button>
+                    {% else %}
+                        <button class="w-full text-white py-1 rounded-md text-sm 
+                            {% if item.progress < 100 %}bg-blue-500 hover:bg-blue-600{% else %}bg-gray-400 cursor-not-allowed{% endif %}">
+                            Contribute
+                        </button>
+                    {% endif %}
+                    
+                    <button class="w-full bg-purple-500 text-white py-1 rounded-md text-sm hover:bg-purple-600">
+                        View Contributors
+                    </button>
+
+                    <button class="bg-red-500 text-white px-3 py-1 rounded-full text-xs">
+                        <i class="fas fa-trash"></i>
+                    </button>
+
+                    <button class="bg-gray-500 text-white px-3 py-1 rounded-full text-xs">
+                        <i class="fas fa-eye{% if item.is_visible %}-slash{% endif %}"></i>
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+    <!-- No Wishlist Items Message -->
+        <div class="text-center py-12">
+            <img src="https://via.placeholder.com/150?text=No+Items" class="mx-auto mb-4" alt="No Wishlist Items">
+            <h3 class="text-lg font-semibold text-gray-800">Your wishlist is empty</h3>
+            <p class="text-gray-600">Start adding items to your wishlist and share with your friends.</p>
+            <a href="{% url 'home' %}" class="mt-4 inline-block bg-pink-500 text-white px-4 py-2 rounded-md hover:bg-pink-600">
+                Add Wishlist Item
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Copy to Clipboard Script -->
+<script>
+function copyToClipboard() {
+    const link = "{{ request.build_absolute_uri }}";
+    navigator.clipboard.writeText(link).then(() => {
+        Swal.fire("Copied!", "Wishlist link copied to clipboard.", "success");
+    });
+}
+</script>
+
+{% endblock %}
