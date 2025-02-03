@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'home',
     'user_register',
     'wishlist',
+    'user_logout',
 ]
 
 MIDDLEWARE = [

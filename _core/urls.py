@@ -25,4 +25,5 @@ urlpatterns = [
     path('user/', include('user_register.url'), name='user_register'),
     path('user/', include('wishlist.url'), name='wishlist'),
     path('user/', include('user_login.url'), name='user_login'),
+    path('user/', include('user_logout.url'), name='user_logout'),
 ]
