@@ -30,6 +30,11 @@ def user_login(request):
         if len(errors) == 0:
             # display success message
             messages.success(request, message)
+
+            # check for next parameter in URL
+            next = request.GET.get('next')
+            if next:
+                return redirect(next)
             return redirect('home')
         
     return render(request, 'user_login.html', {'error_messages': errors, 'success_message': message})
