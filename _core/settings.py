@@ -45,6 +45,10 @@ INSTALLED_APPS = [
     'user_register',
     'wishlist',
     'user_logout',
+    'user_login',
+    'vendor_register',
+    'vendor_login',
+    'vendor_dashboard',
 ]
 
 MIDDLEWARE = [
