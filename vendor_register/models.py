@@ -13,6 +13,7 @@ class Vendor(AbstractUser):
     logo = models.ImageField(upload_to='_static/images/vendor_logos/', blank=True, null=True)
     contact_number = models.CharField(max_length=15, unique=True)
     address = models.TextField(blank=True, null=True)
+    user_type = models.CharField(max_length=255, default='vendor')
     is_verified = models.BooleanField(default=False)  # Platform approval
 
     def __str__(self):

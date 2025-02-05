@@ -102,6 +102,11 @@ DATABASES = {
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
+AUTHENTICATION_BACKENDS = [
+    'vendor_login.auth_backends.VendorBackend',  # Vendor authentication
+    'django.contrib.auth.backends.ModelBackend',  # Default authentication for User model
+]
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',

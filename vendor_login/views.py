@@ -1,6 +1,9 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from vendor_register.models import Vendor
 from _core.utils.helpers import check_if_username_is_phone_or_email
+from django.contrib import messages
+# import login, authenticate
+from django.contrib.auth import authenticate, login
 
 # Create your views here.
 def vendor_login(request):
@@ -10,19 +13,24 @@ def vendor_login(request):
         username_type = check_if_username_is_phone_or_email(user_id)
 
         if username_type == 'email':
-            email = user_id
+            username = fetch_username_with_email(user_id)
         else:
-            email = user_id[-10:]
+            username = user_id[-10:]
         try:
-            vendor = Vendor.objects.get(email=email)
-            if vendor.password == password:
-                return render(request, 'vendor_home.html', {'vendor': vendor})
+            user = authenticate(request, username=username, password=password)
+            if user:
+                login(request, user)
+                messages.success(request, 'Login Successful')
+                # check for next parameter in URL
+                next = request.GET.get('next')
+                if next:
+                    return redirect(next)
+                return redirect('vendor_dashboard')
             else:
-                return render(request, 'vendor_login.html', {'error': 'Invalid Password'})
-        except Vendor.DoesNotExist:
-            return render(request, 'vendor_login.html', {'error': 'Vendor not found'})
-    else:
-        pass
+                messages.error(request, 'Invalid Username or Password')
+        except Exception as e:
+            messages.error(request, f'{e}')
+    
     return render(request, 'vendor_login.html')
 
 
