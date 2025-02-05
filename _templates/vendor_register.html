@@ -6,7 +6,7 @@
         <h2 class="text-2xl font-bold text-purple-700 text-center mb-4">Vendor Registration</h2>
         
         <form method="POST" enctype="multipart/form-data" class="space-y-4">
-            {% csrf_token %}
+            {% csrf_token %} 
             
             <div>
                 <label class="block text-sm font-semibold text-gray-600">Business Name</label>
@@ -36,6 +36,13 @@
             <div>
                 <label class="block text-sm font-semibold text-gray-600">Business Logo (Optional)</label>
                 <input type="file" name="logo" class="w-full p-2 border border-gray-300 rounded">
+            </div>
+
+            <!-- Error Message -->
+            <div id="error_message" class="text-red-500 text-sm">
+                {% if error_message %}
+                {{ error_message }}
+                {% endif %}
             </div>
 
             <button type="submit" class="w-full bg-purple-600 text-white p-2 rounded hover:bg-purple-700">Register</button>
