@@ -10,7 +10,7 @@ class Vendor(AbstractUser):
         'auth.Permission', related_name='vendor_permissions', blank=True
     )
     business_name = models.CharField(max_length=255)
-    logo = models.ImageField(upload_to='vendor_logos/', blank=True, null=True)
+    logo = models.ImageField(upload_to='_static/images/vendor_logos/', blank=True, null=True)
     contact_number = models.CharField(max_length=15, unique=True)
     address = models.TextField(blank=True, null=True)
     is_verified = models.BooleanField(default=False)  # Platform approval

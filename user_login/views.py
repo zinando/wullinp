@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
+from _core.utils.helpers import check_if_username_is_phone_or_email
 
 # Create your views here.
 def user_login(request):
@@ -38,17 +39,7 @@ def user_login(request):
             return redirect('home')
         
     return render(request, 'user_login.html', {'error_messages': errors, 'success_message': message})
-
-def check_if_username_is_phone_or_email(username):
-    if '@' in username:
-        return 'email'
-    else:
-        return 'phone'
-    
     
 def fetch_username_with_email(email):
     user = User.objects.filter(email=email).first()
-    if user:
-        return user.username
-    else:
-        return None
+    return user.username
