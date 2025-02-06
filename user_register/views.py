@@ -27,7 +27,7 @@ def user_register(request):
 
         # create user
         user = User.objects.create_user(username=username, email=email, password=password, first_name=first_name, last_name=last_name)
-        user.save()
+        user.save() 
 
         # The signal will create the Profile automatically
         # Now, update the Profile with the form data

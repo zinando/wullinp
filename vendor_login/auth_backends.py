@@ -1,6 +1,6 @@
 from django.contrib.auth.backends import ModelBackend
 from vendor_register.models import Vendor  # Import your Vendor model
-from django.contrib.auth.models import User
+#from django.contrib.auth.models import User
 
 class VendorBackend(ModelBackend):
     """
@@ -8,8 +8,8 @@ class VendorBackend(ModelBackend):
     """
 
     def authenticate(self, request, username=None, password=None, **kwargs):
-        Vendor.objects.all().delete()
-        User.objects.all().delete()
+        #Vendor.objects.all().delete()
+        #User.objects.all().delete()
         try:
             vendor = Vendor.objects.get(username=username)  # Adjust if using email instead
         except Vendor.DoesNotExist:

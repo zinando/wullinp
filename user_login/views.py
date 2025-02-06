@@ -42,4 +42,6 @@ def user_login(request):
     
 def fetch_username_with_email(email):
     user = User.objects.filter(email=email).first()
-    return user.username
+    if user:
+        return user.username
+    return None

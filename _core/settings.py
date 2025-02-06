@@ -31,6 +31,12 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# Session Settings
+SESSION_ENGINE = "django.contrib.sessions.backends.db"  # Store sessions in the database
+SESSION_COOKIE_AGE = 86400  # 1 day (in seconds)
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Keep session after closing browser
+SESSION_SAVE_EVERY_REQUEST = True  # Save session on every request
+
 
 # Application definition
 
@@ -74,7 +80,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                '_core.context_processors.site_name', # Add this line to the TEMPLATES
+                '_core.context_processors.site_name', # Add custom context processors here
+                '_core.context_processors.vendor_processor', 
             ],
         },
     },
