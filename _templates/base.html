@@ -34,14 +34,19 @@
         <div class="container mx-auto flex justify-between items-center">
             <a href="{% url 'home' %}" class="text-xl font-semibold text-pink-500">{{SITE_NAME_FULL}}</a>
             <div>
-                {% if vendor %}
-                <a href="{% url 'vendor_dashboard' %}" class="text-gray-700 px-4">Dashboard</a>
+                {% if user.profile.user_type == 'vendor' %}
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'vendor_dashboard' %}" class="text-gray-700 px-4">Dashboard</a>
+                    <a href="{% url 'user_logout' %}" class="text-gray-700 px-4">Logout</a>
+                    {% else %}
+                    <a href="{% url 'vendor_login' %}" class="text-gray-700 px-4">Vendor Login</a>
+                    {% endif %}
                 {% else %}
                 <a href="{% url 'wishlist' %}" class="text-gray-700 px-4">Wishlist</a>
                 {% if user.is_authenticated %}
                 <a href="{% url 'user_logout' %}" class="text-gray-700 px-4">Logout</a>
                 {% else %}
-                <a href="{% url 'user_login' %}" class="text-gray-700 px-4">Login</a>
+                <a href="{% url 'user_login' %}" class="text-gray-700 px-4">User Login</a>
                 {% endif %}
                 <a href="{% url 'vendor_login' %}" target="_blank" class="text-gray-700 px-4">Vendor</a>
                 {% endif %}

@@ -6,6 +6,9 @@ from _core.utils.helpers import check_if_username_is_phone_or_email
 
 # Create your views here.
 def user_login(request):
+    if request.user.is_authenticated:
+        logout(request)
+        messages.info(request, 'You have been logged out from your previous account.', extra_tags='alert alert-info')
     message = ''
     errors = []
     if request.method == 'GET' and request.GET.get('message'):
