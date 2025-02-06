@@ -21,10 +21,9 @@ def vendor_register(request):
         if business_name_exists(business_name):
             message = 'Business name already exists.'
 
-        # check if contact_number already exists
-        
-        elif phone_exists(contact_number) and Profile.objects.filter(phone=contact_number).user_type == 'vendor':
-            message = 'Another business account is linked with this number.'
+        # check if contact_number already exists: phone number should be unique
+        elif phone_exists(contact_number):
+            message = 'Another account is linked with this phone number.'
         # check if email already exists
         elif email_exists(email) and User.objects.filter(email=email).profile.user.user_type == 'vendor':
             message = 'Email already exists.'

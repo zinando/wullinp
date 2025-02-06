@@ -20,9 +20,9 @@ def user_register(request):
 
         # check if user already exists
         if User.objects.filter(username=username).exists():
-            return render(request, 'user_signup.html', {'error_message': 'User already exists'})
+            return render(request, 'user_signup.html', {'error_message': 'This phone number is already in use by another user'})
         # check if email already exists
-        if User.objects.filter(email=email).exists():
+        if User.objects.filter(email=email).exists() and User.objects.filter(email=email).profile.user_type=='user':
             return render(request, 'user_signup.html', {'error_message': 'Email already exists'})
 
         # create user

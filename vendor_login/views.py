@@ -1,13 +1,18 @@
 from django.shortcuts import render, redirect
 from vendor_register.models import Vendor
+from user_register.models import Profile
 from _core.utils.helpers import check_if_username_is_phone_or_email
 from django.contrib import messages
 # import login, authenticate
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 #from .auth_backends import VendorBackend
 
 # Create your views here.
 def vendor_login(request):
+    if request.user.is_authenticated:
+        logout(request)
+        messages.info(request, 'You have been logged out from your previous account.', extra_tags='alert alert-info')
+        
     if request.method == 'POST':
         user_id = request.POST['username']
         password = request.POST['password']
@@ -21,7 +26,7 @@ def vendor_login(request):
             user = authenticate(request, username=username, password=password)
             
             if user:
-                login(request, user, backend='vendor_login.auth_backends.VendorBackend')
+                login(request, user)
                 print(f'User: {user}')
                 print(f'is user authenticated: {user.is_authenticated}')
                 print(f'is user recognized: {request.user}')
