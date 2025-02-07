@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+    <div class="bg-white p-6 rounded-lg shadow-md w-full max-w-lg">
+        <h2 class="text-2xl font-bold text-gray-800 text-center mb-4">Profile Information</h2>
+
+        <!-- Display User Details -->
+        <div class="text-center text-gray-700">
+            <p><strong>Username:</strong> {{ user.username }}</p>
+            <p><strong>Email:</strong> {{ user.email }}</p>
+            <p><strong>Phone:</strong> {{ user.profile.phone }}</p>
+
+            {% if user.profile.user_type == "vendor" %}
+                <p><strong>Business Name:</strong> {{ user.profile.business_name }}</p>
+                <p><strong>Business Address:</strong> {{ user.profile.business_address }}</p>
+            {% else%}
+                <p><strong>First Name:</strong> {{ user.first_name }}</p>
+                <p><strong>Last Name:</strong> {{ user.last_name }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Edit Profile Button (Opens Modal) -->
+        <div class="text-center mt-4">
+            <a href="#" onclick="openModal()" class="text-sm text-indigo-600 hover:underline">Edit Profile</a>
+            <span class="mx-2 text-gray-400">|</span>
+            <a href="#" onclick="openModal()" class="text-sm text-indigo-600 hover:underline">Change Password</a>
+        </div>
+        <!-- <div class="text-center mt-4">
+            <button onclick="openModal()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
+                Edit Profile
+            </button>
+        </div> -->
+    </div>
+</div>
+
+<!-- Modal Dialog for Editing Profile -->
+<div id="profileModal" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 hidden">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md relative">
+        <button onclick="closeModal()" class="absolute top-2 right-2 text-gray-600 hover:text-gray-900">✖</button>
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">Edit Profile</h3>
+
+        <form method="POST" class="space-y-4">
+            {% csrf_token %}
+
+            <!-- Common Fields -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-600">Username</label>
+                <input type="text" name="username" value="{{ user.username }}" required
+                       class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+            </div>
+            <!--add email and phone Number-->
+            <div>
+                <label class="block text-sm font-semibold text-gray-600">Email</label>
+                <input type="email" name="email" value="{{ user.email }}" required
+                       class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+            </div>
+            
+            <!-- User-Specific Fields -->
+            {% if user.profile.user_type == "user" %}
+            <div>
+                <label class="block text-sm font-semibold text-gray-600">First Nmae</label>
+                <input type="text" name="first_name"
+                       class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-gray-600">Last Name</label>
+                <input type="text" name="last_name"
+                       class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+            </div>
+            {% endif %}
+            <!-- Vendor-Specific Fields -->
+            {% if user.profile.user_type == "vendor" %}
+            <div>
+                <label class="block text-sm font-semibold text-gray-600">Business Name</label>
+                <input type="text" name="business_name" value="{{ user.profile.business_name }}" required
+                       class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-gray-600">Business Address</label>
+                <input type="text" name="business_address" value="{{ user.profile.business_address }}"
+                       class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+            </div>
+            {% endif %}
+
+            <button type="submit" class="w-full bg-purple-600 text-white p-2 rounded hover:bg-purple-700">
+                Save Changes
+            </button>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+
+<!-- JavaScript for Modal -->
+<script>
+    function openModal() {
+        document.getElementById("profileModal").classList.remove("hidden");
+    }
+
+    function closeModal() {
+        document.getElementById("profileModal").classList.add("hidden");
+    }
+</script>
+
+{% endblock %}

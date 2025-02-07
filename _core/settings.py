@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
     'home',
     'user_register',
     'wishlist',
@@ -55,6 +56,8 @@ INSTALLED_APPS = [
     'vendor_register',
     'vendor_login',
     'vendor_dashboard',
+    'products',
+    'user_profile',
 ]
 
 MIDDLEWARE = [

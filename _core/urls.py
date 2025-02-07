@@ -29,4 +29,6 @@ urlpatterns = [
     path('vendor/', include('vendor_register.url'), name='vendor_register'),
     path('vendor/', include('vendor_dashboard.url'), name='vendor_dashboard'),
     path('vendor/', include('vendor_login.url'), name='vendor_login'),
+    path('products/', include('products.url'), name='products_view'),
+    path('user/', include('user_profile.url'), name='user_profile'),
 ]
