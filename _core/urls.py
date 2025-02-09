@@ -17,6 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 import home.views
+from user_profile.views import update_profile, update_vendor_profile, change_user_password
 
 
 urlpatterns = [
@@ -31,4 +32,10 @@ urlpatterns = [
     path('vendor/', include('vendor_login.url'), name='vendor_login'),
     path('products/', include('products.url'), name='products_view'),
     path('user/', include('user_profile.url'), name='user_profile'),
+    path('user/profile/update/', update_profile, name='update_user_profile'),
+    path('vendor/profile/update/', update_vendor_profile, name='update_vendor_profile'),
+    path('user/change_password/', change_user_password, name='change_user_password'),
+    # path('user/', include('user_profile.url'), name='update_user_profile'),
+    # path('vendor/', include('user_profile.url'), name='update_vendor_profile'),
+
 ]

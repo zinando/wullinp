@@ -18,12 +18,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- jQuery & AJAX -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-
-    <!-- Custom JS -->
-    {% load static %}
-    <script src="{% static 'assets/js/main.js' %}"></script>
-    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>   
 
     {% block extra_css %}{% endblock %}
 </head>
@@ -81,6 +76,10 @@
         <p class="text-sm text-gray-600">© {{CURRENT_YEAR}} {{SITE_NAME_FULL}}. All rights reserved.</p>
     </footer>
 
+    <!-- Custom JS --> 
+    {% load static %}
+    <script src="{% static 'assets/js/main.js' %}"></script>
+ 
     {% block extra_js %}{% endblock %}
 </body>
 </html>
