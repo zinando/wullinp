@@ -2,8 +2,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils.text import slugify
 from datetime import datetime
-#import ENUM
-from enum import Enum
+import random
+import string
 
 # Create your models here.
 class Products(models.Model):
@@ -21,6 +21,7 @@ class Products(models.Model):
     image_2_thumb_url = models.ImageField(upload_to='_static/images/products/2/thumb/', blank=True, null=True)
     image_3_thumb_url = models.ImageField(upload_to='_static/images/products/3/thumb/', blank=True, null=True)
     image_4_thumb_url = models.ImageField(upload_to='_static/images/products/4/thumb/', blank=True, null=True)
+    
     # field for cloud storage url
     image_1_cloud_url = models.URLField(blank=True, null=True)
     image_2_cloud_url = models.URLField(blank=True, null=True)
@@ -34,10 +35,15 @@ class Products(models.Model):
     image_2_pid = models.CharField(max_length=100, blank=True, null=True)
     image_3_pid = models.CharField(max_length=100, blank=True, null=True)
     image_4_pid = models.CharField(max_length=100, blank=True, null=True)
+    image_1_thumb_pid = models.CharField(max_length=100, blank=True, null=True)
+    image_2_thumb_pid = models.CharField(max_length=100, blank=True, null=True)
+    image_3_thumb_pid = models.CharField(max_length=100, blank=True, null=True)
+    image_4_thumb_pid = models.CharField(max_length=100, blank=True, null=True)
+    
     deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    sku = models.CharField(max_length=100, blank=True, null=True)
+    sku = models.CharField(max_length=100, blank=True, null=True, unique=True)
     slug = models.SlugField(unique=True, blank=True)
     product_feature = models.JSONField(blank=True, null=True)
     cprice = models.DecimalField(max_digits=18, decimal_places=2, default=1.00)
@@ -60,6 +66,21 @@ class Products(models.Model):
 
     def __repr__(self):
         return self.name
+    
+    def save(self, *args, **kwargs):
+        if not self.slug:  # Generate slug only if it doesn't exist
+            base_slug = slugify(self.name)
+            unique_slug = base_slug
+            counter = 1
+            while Products.objects.filter(slug=unique_slug).exists():
+                unique_slug = f"{base_slug}-{counter}"
+                counter += 1
+            self.slug = unique_slug
+
+        # save sku value if not exists
+        if not self.sku:
+            self.sku = f"{self.name[:3].upper()}-{generate_sku()}"
+        super().save(*args, **kwargs)
 
 
 
@@ -83,3 +104,8 @@ class ProductCategory(models.Model):
 
     class Meta:
         verbose_name_plural = "Categories"
+
+
+
+def generate_sku():
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))

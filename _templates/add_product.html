@@ -1,0 +1,151 @@
+{% extends "vendor_base.html" %}
+{% block vendor_content %}
+
+<div class="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+    <div class="bg-white p-6 rounded-lg shadow-md w-full max-w-lg">
+        <h2 class="text-2xl font-bold text-gray-800 text-center mb-4">Upload a New Product</h2>
+
+        <!-- Step 1: Product Information Form -->
+        <div id="productForm">
+            <form method="POST" id="productInfoForm">
+                {% csrf_token %}
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600">Product Name</label>
+                    <input type="text" name="product_name" required
+                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600">Description</label>
+                    <textarea name="description" rows="2" required placeholder="Talk about the item as a whole"
+                              class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500"></textarea>
+                </div>
+
+                <!-- create a field for product features -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600">Features</label>
+                    <textarea name="features" rows="3" required
+                              class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500"
+                              placeholder="List each item in the package and their different features in bracket. e.g Sneakers - (color:black; size:42;)"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600">Category</label>
+                    <select name="category_id" required
+                            class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                        <option value="">Select Category</option>
+                        {% for category_id, category_name in categories %}
+                            <option value="{{ category_id }}">{{ category_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600">Initial Price</label>
+                    <input type="number" name="preprice" step="0.01" required
+                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600">Current Price</label>
+                    <input type="number" name="cprice" step="0.01" required
+                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                </div>
+
+                <!-- min quantity -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600">Minimum Quantity</label>
+                    <input type="number" name="min_quantity" required
+                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600">Stock</label>
+                    <input type="number" name="stock" required
+                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                </div>
+
+                <!-- buyer note -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600">Buyer Note</label>
+                    <textarea name="buyer_note" rows="2"
+                              class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500"
+                              placeholder="Add a note to the buyer"></textarea>
+                </div>
+
+                <!-- display error message -->
+                <div id="error-message" class="text-red-500 text-sm font-semibold mt-2"></div>
+
+                <button id="create_button" type="submit" class="w-full bg-purple-600 text-white p-2 rounded mt-4 hover:bg-purple-700">
+                    Save Product Info
+                </button>
+            </form>
+        </div>
+
+        <!-- Step 2: Image Upload Form (Initially Hidden) -->
+        <div id="imageUploadForm" class="hidden">
+            <h3 id="title" class="text-lg font-semibold text-gray-800 mt-6 mb-2"></h3>
+            <form method="POST" enctype="multipart/form-data" action="/vendor/products/add/?query=upload_product_photos">
+                {% csrf_token %}
+                <input type="hidden" name="product_id" value=0>
+                <input type="file" name="product_images" accept="image/*" multiple required
+                       class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                <small class="text-gray-500">Max: 4 images</small>
+
+                <button id="add_image_button" type="submit" class="w-full bg-purple-600 text-white p-2 rounded mt-4 hover:bg-purple-700">
+                    Upload Images
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript to Handle Form Steps -->
+<script>
+    document.getElementById("productInfoForm").addEventListener("submit", function (event) {
+        event.preventDefault();  // Prevent normal form submission for now
+
+        // ensure submit is not clicked twice
+        document.getElementById("create_button").disabled = true;
+
+        // Get form data
+        const formData = new FormData(event.target);
+        var table_fields = {};
+        formData.forEach((value, key) => {
+            table_fields[key] = value;
+        });
+
+        request_data = {'user_id': '{{ user.id }}', 'table_fields': table_fields};
+
+        // Send form data to backend
+        fetch('/vendor/products/add/?query=add_new_product', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}',
+            },
+            body: JSON.stringify(request_data),
+        })
+        .then(response => response.json())  // Convert response to JSON properly
+        .then(data => {
+            if (!data.success) {  // Ensure to check data structure properly
+                document.getElementById("error-message").innerText = data.errors || "An error occurred";
+                return;
+            }
+            // Proceed to product image upload form
+            document.getElementById("productForm").classList.add("hidden");
+            document.getElementById("imageUploadForm").classList.remove("hidden");
+            // Set product_id in image upload form and title for the image form
+            document.querySelector("#imageUploadForm input[name='product_id']").value = data.product_id;
+            alert(`Product ID: ${data.product_id}`);
+            //console.log(`Our data: ${JSON.stringify(data)}`);
+            document.querySelector("#imageUploadForm #title").innerText = "Upload Images for: " + table_fields['product_name'];
+        })
+        .catch(error => {
+            document.getElementById("error-message").innerText = "Error: " + error.message;
+        });
+    });
+</script>
+
+{% endblock %}

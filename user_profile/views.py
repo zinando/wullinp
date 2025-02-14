@@ -1,9 +1,8 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from _core.serializer import UserSerializer
 from django.contrib import messages
 from django.contrib.auth.models import User
 from _core.utils.helpers import is_email_exists, is_phone_exists, is_business_name_exists

@@ -18,10 +18,11 @@ from django.contrib import admin
 from django.urls import path, include
 import home.views
 from user_profile.views import update_profile, update_vendor_profile, change_user_password
+from products.views import ProductView
 
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('admin/', admin.site.urls), 
     path('', home.views.home, name='home'),
     path('user/', include('user_register.url'), name='user_register'),
     path('user/', include('wishlist.url'), name='wishlist'),
@@ -30,11 +31,12 @@ urlpatterns = [
     path('vendor/', include('vendor_register.url'), name='vendor_register'),
     path('vendor/', include('vendor_dashboard.url'), name='vendor_dashboard'),
     path('vendor/', include('vendor_login.url'), name='vendor_login'),
-    path('products/', include('products.url'), name='products_view'),
+    path('products/', ProductView, name='products_view'),
     path('user/', include('user_profile.url'), name='user_profile'),
     path('user/profile/update/', update_profile, name='update_user_profile'),
     path('vendor/profile/update/', update_vendor_profile, name='update_vendor_profile'),
     path('user/change_password/', change_user_password, name='change_user_password'),
+    path('vendor/', include('products.url'), name='add_product'),
     # path('user/', include('user_profile.url'), name='update_user_profile'),
     # path('vendor/', include('user_profile.url'), name='update_vendor_profile'),
 

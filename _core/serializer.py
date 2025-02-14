@@ -4,7 +4,6 @@ from user_register.models import Profile
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-    print('profile serializer called')
     class Meta:
         model = Profile
         fields = '__all__'
@@ -20,7 +19,6 @@ class ProfileSerializer(serializers.ModelSerializer):
         return value
 
     def update(self, instance, validated_data):
-        print('profile update method called')
         # Check if the phone number is being updated
         new_phone = validated_data.get('phone', instance.phone)
 
