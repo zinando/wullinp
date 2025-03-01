@@ -1,94 +1,578 @@
-{% extends "base.html" %}
-
+{% extends 'base.html' %}
 {% block content %}
-<section class="bg-gray-100 py-12">
-  <div class="max-w-6xl mx-auto px-4">
-    <h2 class="text-3xl font-semibold text-center mb-8">Featured Products</h2>
-    <div id="product-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-      <!-- Products will be dynamically loaded here -->
+{% load static %}
+
+<!-- Hero Slider (Category Showcase) -->
+<div class="relative w-full h-[50vh] sm:h-[65%] sm:mx-4 overflow-hidden group">
+    <div class="flex transition-transform duration-700 ease-in-out scale-110 sm:scale-100" id="categorySlider">
+      <!-- Categories will be loaded dynamically here -->
     </div>
-    <div id="loading" class="text-center mt-8">
-      <p class="text-lg text-gray-500">Loading...</p>
+  
+    <!-- Navigation Buttons -->
+    <button id="prevSlide" type="button"
+      class="absolute top-1/2 left-4 bg-gray-900 text-white p-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+      ❮
+    </button>
+    <button id="nextSlide" type="button"
+      class="absolute top-1/2 right-4 bg-gray-900 text-white p-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+      ❯
+    </button>
+</div>
+
+<!-- Hero Section with Call to Action
+<section class="relative w-full h-[30vh] bg-cover bg-center flex items-center justify-center text-white text-center"
+    style="background-image: url('/static/images/hero-banner.jpg');">
+    <div class="bg-black bg-opacity-50 p-8 rounded-md">
+        <h1 class="text-4xl font-bold">Find the Perfect Gift 🎁</h1>
+        <p class="mt-4 text-lg">Browse thousands of unique gifts for any occasion.</p>
+        <a href="#products"
+            class="mt-6 inline-block bg-yellow-500 hover:bg-yellow-600 text-black font-semibold py-3 px-6 rounded">
+            Shop Now
+        </a>
     </div>
-  </div>
+</section> -->
+
+<!-- Internal Ad Banners -->
+<section class="flex justify-center gap-4 my-10">
+    <!-- <img id="ad1" src="/static/images/ad1.jpg" class="w-[40%] h-[100px] object-cover rounded-lg shadow-lg hover:scale-105 transition-transform">
+    <img id="ad2" src="/static/images/ad2.jpg" class="w-[40%] h-[100px] object-cover rounded-lg shadow-lg hover:scale-105 transition-transform"> -->
+
+    <!-- add video instead of images without controls and muted styled with tailind css-->
+    <video class="w-[40%] h-[150px] object-cover rounded-lg shadow-lg hover:scale-105 transition-transform" autoplay loop muted>
+        <source src="{% static 'videos/ads/ad_1.mp4' %}" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+    <video class="w-[40%] h-[150px] object-cover rounded-lg shadow-lg hover:scale-105 transition-transform" autoplay loop muted playsinline>
+        <source src="/static/videos/ads/ad_2.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
 </section>
 
+<!-- Search & Filters -->
+<div class="container mx-auto px-4">
+    <div class="flex flex-col md:flex-row justify-between gap-8">
+        <!-- Search Bar -->
+         <div class="relative flex-1">
+            <input id="searchBar" type="text" placeholder="Search for products..."
+                class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-pink-500">
+            <button class="absolute right-0 top-0 bottom-0 bg-pink-500 text-white px-4 py-2 rounded-r-md">
+                Search
+            </button>
+        </div>
+
+
+        <!-- Filters -->
+        <div class="flex flex-col md:flex-row gap-4">
+            <!-- price filter -->
+            <div class="relative inline-block text-left">
+                <button id="priceFilterBtn" class="bg-gray-800 text-white px-4 py-2 rounded-md hover:bg-gray-700">
+                    Filter by Price
+                </button>
+            
+                <div id="priceFilterMenu" class="absolute mt-2 w-64 bg-white border border-gray-300 rounded-md shadow-lg p-4 hidden">
+                    <label for="minPrice" class="text-gray-700 font-semibold">Min Price:</label>
+                    <input id="minPrice" type="number" min="0" value="0"
+                        class="w-full border border-gray-300 rounded-md px-2 py-1 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            
+                    <label for="maxPrice" class="text-gray-700 font-semibold mt-2">Max Price:</label>
+                    <input id="maxPrice" type="number" min="0" value="1000"
+                        class="w-full border border-gray-300 rounded-md px-2 py-1 mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            
+                    <button id="applyFilter" class="w-full bg-blue-600 text-white px-4 py-2 mt-3 rounded-md hover:bg-blue-700">
+                        Apply Filter
+                    </button>
+                </div>
+            </div>
+
+            <!-- Category Filter -->
+            <select id="categoryFilter" class="border px-4 py-2 rounded-lg">
+            </select>
+        </div>
+        
+    </div>
+</div>
+
+<div id="product-section">
+
+    <!-- Dynamic Category Sections -->
+    <div class="container mx-auto my-10 px-4">
+    <!-- Section for Electronics -->
+    <div class="flex justify-between items-center mb-4">
+        <h2 id="random_category_1" class="text-2xl font-bold">Electronics & Gadgets</h2>
+        <a href="/category/electronics" class="text-blue-500 hover:underline">View All</a>
+    </div>
+    <!-- products will be loaded here side by side -->
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" data-category="random_category_1">
+        </div>
+    </div>
+
+    <!-- Hot Deals -->
+    <div class="container mx-auto my-10 px-4">
+        <h2 class="text-2xl font-bold">🔥 Hot Deals</h2>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" data-category="hot-deals">
+            <!-- products will be loaded here side by side -->
+        </div>
+    </div>
+
+    <!-- Section for Fashion -->
+    <div class="container mx-auto my-10 px-4">
+        <div class="flex justify-between items-center mb-4">
+            <h2 id="random_category_2" class="text-2xl font-bold">Fashion & Accessories</h2>
+            <a href="/category/fashion" class="text-blue-500 hover:underline">View All</a>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" data-category="random_category_2">
+            <!-- products will be loaded here side by side -->
+        </div>
+    </div>
+
+    <!-- Most Popular -->
+    <div class="container mx-auto my-10 px-4">
+    <h2 class="text-2xl font-bold">⭐ Most Popular</h2>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" data-category="most-popular">
+            <!-- products will be loaded here side by side -->
+    </div>
+    </div>
+
+    <!-- Product Grid -->
+    <section id="products" class="container mx-auto grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 my-10">
+        <!-- Products will be loaded dynamically here -->
+    </section>
+
+    <!-- Infinite Scroll Loader -->
+    <div id="loading" class="hidden text-center py-4">
+        <span class="text-gray-500">Loading more products...</span>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
+{% load static %}
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-  // Variables
-  let page = 1;
-  let loading = false;
+    const STATIC_IMAGE_URL = "{% static 'images/categories/' %}";
+    const AD_IMAGE_URL = "{% static 'images/ads/' %}";
+    const displayProducts = new LocalStorageManager('displayProducts');
 
-  // Function to load products
-  function loadProducts() {
-    if (loading) return;
-    loading = true;
-    $('#loading').show(); 
+$(document).ready(function () {
+    
 
-    $.ajax({
-      url: "{% url 'products_view' %}?query=fetch_public_products",  // Your Django URL for loading products
-      type: 'GET',
-      dataType: 'json',
-      data: {
-        'page': page
-      },
-      success: function(response) {
-        const products = response? response:[];  // Assuming you're sending the products in JSON format
-        if (products.length > 0) {
-          products.forEach(product => {
-            console.log(`Product url: ${product.image_1_cloud_thumb_url}`);
-            const productCard = `
-              <div class="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition">
-                <img src="${product.image_1_cloud_url}" alt="${product.name}" class="w-full h-64 object-cover rounded-md mb-4">
-                <h3 class="text-lg font-semibold">${product.name}</h3>
-                <p class="text-gray-700">&#8358; ${product.cprice}</p>
-                <div class="mt-4 flex justify-between items-center">
-                  <button class="bg-blue-500 text-white py-2 px-4 rounded-md" onclick="addToCart(${product.id})">Add to Cart</button>
-                  <button class="bg-gray-500 text-white py-2 px-4 rounded-md" onclick="addToWishlist(${product.id})">Add to Wishlist</button>
-                </div>
-              </div>
-            `;
-            $('#product-list').append(productCard);
-          });
-          page++;
-        } else {
-          $('#loading').text('No more products to load.');
-        }
-        loading = false;
-        $('#loading').hide();
-      },
-      error: function() {
-        loading = false;
-        $('#loading').text('Error loading products.');
-      }
+    // Load Random Ad Images
+    loadRandomAdImage($("#ad1"));
+    loadRandomAdImage($("#ad2"));
+
+    // add event listener to the category filter
+    $("#categoryFilter").on("change", function(){
+        // get the selected category id
+        let categoryId = $(this).val();
+        // call the filterProductsByCategory function to load products based on the selected category
+        filterProductsByCategory(categoryId);
     });
-  }
 
-  // Function to add to cart
-  function addToCart(productId) {
-    // Handle adding to cart (AJAX call or redirect to cart page)
-    console.log('Added to cart: ' + productId);
-  }
 
-  // Function to add to wishlist
-  function addToWishlist(productId) {
-    // Handle adding to wishlist (AJAX call or redirect to wishlist page)
-    console.log('Added to wishlist: ' + productId);
-  }
+    let page = 1;
+    let currentSlide = 0;
+    let slideCount = 0;
+    let autoScroll;
 
-  // Lazy load products on scroll
-  $(window).on('scroll', function() {
-    if ($(window).scrollTop() + $(window).height() == $(document).height()) {
-      loadProducts();
+    // Load Products 
+    function loadProducts() {
+        $("#loading").removeClass("hidden");
+        $.ajax({
+            url: `{% url 'products_view' %}?page=${page}&query=fetch_public_products`,
+            method: "GET",
+            success: function (response) {
+                // Append slider categories with the images
+                response.slider_categories.forEach((category, index) => {
+                    $("#categorySlider").append(`
+                        <div class="w-full flex-shrink-0 relative">
+                            <img src="${STATIC_IMAGE_URL}${category.id}.jpg" class="w-full h-[60vh] object-cover" alt="${category.name} image">
+                            <div class="absolute inset-0 flex flex-col justify-center items-start text-white bg-black/40 px-10">
+                                <h2 class="text-4xl font-bold">${category.name}</h2>
+                                <p class="text-lg">Find the latest ${category.name} for your loved ones.</p>
+                                <a href="/category/${category.slug}" class="mt-4 inline-block bg-yellow-500 hover:bg-yellow-600 px-6 py-3 rounded">
+                                    Shop Now
+                                </a>
+                            </div>
+                        </div>
+                    `);
+                });
+
+                //let currentSlide = 0;
+                slideCount = response.slider_categories.length;
+
+                function showSlide(index) {
+                    let newTransform = `translateX(-${index * 100}%)`;
+                    $("#categorySlider").css("transform", newTransform);
+                }
+
+                $("#nextSlide").click(() => {
+                    stopAutoScroll();
+                    currentSlide = (currentSlide + 1) % slideCount;
+                    showSlide(currentSlide);
+                    startAutoScroll();
+                });
+
+                $("#prevSlide").click(() => {
+                    stopAutoScroll();
+                    currentSlide = (currentSlide - 1 + slideCount) % slideCount;
+                    showSlide(currentSlide);
+                    startAutoScroll();
+                });
+                
+                // Auto scroll the slider
+                function startAutoScroll() {
+                    autoScroll = setInterval(() => {
+                        currentSlide = (currentSlide + 1) % slideCount;
+                        showSlide(currentSlide);
+                    }, 4000); // Change slides every 4 seconds
+                }
+                
+                // Stop auto scroll on hover
+                function stopAutoScroll() {
+                    clearInterval(autoScroll);
+                }
+
+                $(".relative").hover(stopAutoScroll, startAutoScroll);
+
+                startAutoScroll();
+
+                // persist the products in local storage
+                displayProducts.saveData(response.products);
+
+                // Append products to the grid
+                response.products.forEach((product, index) => {
+                    $("#products").append(`
+                        <div class="bg-white p-4 rounded-lg shadow-lg transform hover:scale-105 transition-transform">
+                            <img src="${product.image_1_cloud_url}" class="w-full h-48 object-cover rounded-lg">
+                            <h3 class="mt-2 font-semibold text-lg">${product.name}</h3>
+                            <p class="text-sm text-gray-500">${product.category.name}</p>
+                            <p class="font-bold mt-2">&#8358;${product.cprice}</p>
+                            <div class="flex gap-2 mt-3">
+                                <button class="addToCart bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
+                                    data-id="${product.id}" 
+                                    data-name="${product.name}" 
+                                    data-category_id="${product.category_id}"
+                                    data-price="${product.cprice}"
+                                    data-stock="${product.stock}"
+                                    data-sizes="${product.sizes}"
+                                    data-colors="${product.colors}"
+                                    >
+                                    Add to Cart
+                                </button>
+                                <button class="addToWishlist bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+                                    data-id="${product.id}" 
+                                    data-name="${product.name}" 
+                                    data-category_id="${product.category_id}"
+                                    data-price="${product.cprice}"
+                                    data-stock="${product.stock}"
+                                    data-sizes="${product.sizes}"
+                                    data-colors="${product.colors}"
+                                    >
+                                    ❤️
+                                </button>
+                            </div>
+                        </div>
+                    `);
+                });
+                $("#loading").addClass("hidden");
+
+                // Populate the category filter
+                $("#categoryFilter").html("<option value=0>All Categories</option>");
+                response.category_hierarchy.forEach(category => {
+                    $("#categoryFilter").append(`
+                        <option value="${category[0]}">${category[1]}</option>
+                    `);
+                });
+
+                // Populate the category sections
+                populate_category_section("random_category_1", response.random_category_1_products, response.random_category_1);
+                populate_category_section("random_category_2", response.random_category_2_products, response.random_category_2);
+                populate_category_section("most-popular", response.most_popular, {name: "Most Popular"});
+                populate_category_section("hot-deals", response.hot_deals, {name: "Hot Deals"});
+            }
+        });
     }
-  });
 
-  // Initial load of products
-  $(document).ready(function() {
+    // Load products on page load
     loadProducts();
-  });
+
+    // Infinite Scroll
+    $(window).scroll(function () {
+        if ($(window).scrollTop() + $(window).height() >= $(document).height() - 50) {
+            page++;
+            loadProducts();
+        }
+    });
+
+    // Search Products
+    $("#searchBar").on("input", function () {
+        let query = $(this).val();
+        $.ajax({
+            url: `{% url "search_products" %}?q=${query}`,
+            method: "GET",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+                'Content-Type': 'application/json',
+            },
+            success: function (response) {
+                $("#product-section").html("");
+
+                // add title and a class to the section class="container mx-auto grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 my-10"
+                $("#product-section").html(`<h2 class="text-2xl font-bold mt-10 mb-10">${response.query}</h2>`);
+                $("#product-section").append(`<div id="search-results" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" data-category="search-results"></div>`);
+
+                // append the filtered products
+                response.products.forEach(product => {
+                    $("#search-results").append(`
+                        <div class="product-card" >
+                            <div class="bg-white p-4 rounded-lg shadow-lg hover:scale-105 transition-transform">
+                                <img src="${product.image_1_cloud_url}" class="w-full h-48 object-cover rounded-lg">
+                                <h3 class="mt-2 font-semibold text-lg">${product.name}</h3>
+                                <p class="font-bold mt-2">&#8358;${product.cprice}</p>
+                                <button class="addToCart bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
+                                    data-id="${product.id}" 
+                                    data-name="${product.name}" 
+                                    data-category_id="${product.category_id}"
+                                    data-price="${product.cprice}"
+                                    data-stock="${product.stock}"
+                                    data-sizes="${product.sizes}"
+                                    data-colors="${product.colors}"
+                                    >
+                                    Add to Cart
+                                </button>
+                                <button class="addToWishlist bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+                                    data-id="${product.id}" 
+                                    data-name="${product.name}" 
+                                    data-category_id="${product.category_id}"
+                                    data-price="${product.cprice}"
+                                    data-stock="${product.stock}"
+                                    data-sizes="${product.sizes}"
+                                    data-colors="${product.colors}"
+                                    >
+                                    ❤️
+                                </button>
+                            </div>
+                        </div>
+                    `);
+                });
+            }
+        });
+    });
+
+    // function to filter products based on price range
+    
+        const priceFilterBtn = document.getElementById("priceFilterBtn");
+        const priceFilterMenu = document.getElementById("priceFilterMenu");
+        const applyFilterBtn = document.getElementById("applyFilter");
+        const minPriceInput = document.getElementById("minPrice");
+        const maxPriceInput = document.getElementById("maxPrice");
+
+        // Toggle dropdown visibility
+        priceFilterBtn.addEventListener("click", function () {
+            priceFilterMenu.classList.toggle("hidden");
+        });
+
+        // Close dropdown if clicked outside
+        document.addEventListener("click", function (event) {
+            if (!priceFilterBtn.contains(event.target) && !priceFilterMenu.contains(event.target)) {
+                priceFilterMenu.classList.add("hidden");
+            }
+        });
+
+        // Apply filter logic (modify this function to work with your product filtering system)
+        applyFilterBtn.addEventListener("click", function () {
+            //parse the input values
+            const minPrice = parseFloat(minPriceInput.value);
+            const maxPrice = parseFloat(maxPriceInput.value);
+            if (minPrice === "" || maxPrice === "") {
+                alert("Please enter both minimum and maximum prices.");
+                return;
+            }
+            if (parseInt(minPrice) >= parseInt(maxPrice)) {
+                alert("Minimum price must be less than maximum price.");
+                return;
+            }
+        
+            // filter products based on price range
+            products = JSON.parse(localStorage.getItem("displayProducts"));
+
+            const filteredProducts = products.filter(product => {
+                //console.log(`name: ${product.name}, price: ${product.cprice}`);
+                return product.cprice >= minPrice && product.cprice <= maxPrice;
+            });
+            // clear all products
+            $("#product-section").html("");
+
+            // add title and a class to the section class="container mx-auto grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 my-10"
+            $("#product-section").html(`<h2 class="text-2xl font-bold mt-10 mb-10">Filtered products between ${minPrice} and ${maxPrice}</h2>`);
+            $("#product-section").append(`<div id="filtered-products-by-price" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" data-category="filtered-products-by-price"></div>`);
+
+            // append the filtered products
+            filteredProducts.forEach(product => {
+                $("#filtered-products-by-price").append(`
+                    <div class="product-card" >
+                        <div class="bg-white p-4 rounded-lg shadow-lg hover:scale-105 transition-transform">
+                            <img src="${product.image_1_cloud_url}" class="w-full h-48 object-cover rounded-lg">
+                            <h3 class="mt-2 font-semibold text-lg">${product.name}</h3>
+                            <p class="font-bold mt-2">&#8358;${product.cprice}</p>
+                            <button class="addToCart bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
+                                data-id="${product.id}" 
+                                data-name="${product.name}" 
+                                data-category_id="${product.category_id}"
+                                data-price="${product.cprice}"
+                                data-stock="${product.stock}"
+                                data-sizes="${product.sizes}"
+                                data-colors="${product.colors}"
+                                >
+                                Add to Cart
+                            </button>
+                            <button class="addToWishlist bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+                                data-id="${product.id}" 
+                                data-name="${product.name}" 
+                                data-category_id="${product.category_id}"
+                                data-price="${product.cprice}"
+                                data-stock="${product.stock}"
+                                data-sizes="${product.sizes}"
+                                data-colors="${product.colors}"
+                                >
+                                ❤️
+                            </button>
+                        </div>
+                    </div>
+                `);
+            });
+            priceFilterMenu.classList.add("hidden");
+        });
+    
+
+//});
+
+    // function to populate the category sections
+    function populate_category_section(section_name, products, category){
+        // restrict products to 4 items only
+        products = products.slice(0, 4);
+        // get the section element
+        let section = $(`[data-category="${section_name}"]`);
+        // clear the section
+        section.html("");
+
+        // loop through the products and append to the section
+        products.forEach(product => {
+            // change the title
+            $(`#${section_name}`).html(category.name);
+            // append the product to the section
+            section.append(`
+                <div class="product-card" >
+                    <div class="bg-white p-4 rounded-lg shadow-lg hover:scale-105 transition-transform">
+                        <img src="${product.image_1_cloud_url}" class="w-full h-48 object-cover rounded-lg">
+                        <h3 class="mt-2 font-semibold text-lg">${product.name}</h3>
+                        <p class="font-bold mt-2">&#8358;${product.cprice}</p>
+                        <button class="addToCart bg-blue-500 hover:bg-blue-600 gap-2 text-white px-3 py-1 rounded"
+                            data-id="${product.id}" 
+                            data-name="${product.name}" 
+                            data-category_id="${product.category_id}"
+                            data-price="${product.cprice}"
+                            data-stock="${product.stock}"
+                            data-sizes="${product.sizes}"
+                            data-colors="${product.colors}"
+                            >
+                            Add to Cart
+                        </button>
+                        <button class="addToWishList bg-blue-500 hover:bg-blue-600 gap-2 text-white px-3 py-1 rounded"
+                            data-id="${product.id}" 
+                            data-name="${product.name}" 
+                            data-category_id="${product.category_id}"
+                            data-price="${product.cprice}"
+                            data-stock="${product.stock}"
+                            data-sizes="${product.sizes}"
+                            data-colors="${product.colors}"
+                            >
+                            wishlist
+                        </button>
+                    </div>
+                </div>
+            `);
+        });
+    }
+
+    /* function to load products based on category. 
+    * * This function will be called when a category is selected
+    */
+    function filterProductsByCategory(categoryId){
+        // clear all products
+        $("#product-section").html("");
+
+        // add a class to the section class="container mx-auto grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 my-10"
+        $("#product-section").addClass("container mx-auto px-4");
+
+        // load products based on the selected category mx-auto my-10 px-4
+        $.ajax({
+            url: `{% url 'products_view' %}?query=fetch_products_by_category&category_id=${categoryId}`,
+            method: "GET",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+                'Content-Type': 'application/json',
+            },
+            success: function (response) {
+                // append the title of the category
+                $("#product-section").html(`<h2 class="text-2xl font-bold">${response.category_name}</h2>`);
+                $("#product-section").append(`<div id="filtered-products" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6" data-category="filtered-products"></div>`);
+        
+                // Persist the products in local storage
+                displayProducts.saveData(response.products);
+
+                // Append products to the product section
+                response.products.forEach(product => {
+                    $("#filtered-products").append(`
+                            <div class="bg-white p-4 rounded-lg shadow-lg">
+                                <img src="${product.image_1_cloud_url}" class="w-full h-48 object-cover rounded-lg">
+                                <h3 class="mt-2 font-semibold text-lg">${product.name}</h3>
+                                <p class="font-bold mt-2">&#8358;${product.cprice}</p>
+                                <button class="addToCart bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
+                                    data-id="${product.id}" 
+                                    data-name="${product.name}" 
+                                    data-category_id="${product.category_id}"
+                                    data-price="${product.cprice}"
+                                    data-stock="${product.stock}"
+                                    data-sizes="${product.sizes}"
+                                    data-colors="${product.colors}"
+                                    >
+                                    Add to Cart
+                                </button>
+                                <button class="addToWishlist bg-biege-500 hover:bg-red-600 text-white px-3 py-1 rounded"
+                                    data-id="${product.id}" 
+                                    data-name="${product.name}" 
+                                    data-category_id="${product.category_id}"
+                                    data-price="${product.cprice}"
+                                    data-stock="${product.stock}"
+                                    data-sizes="${product.sizes}"
+                                    data-colors="${product.colors}"
+                                    >
+                                    ❤️
+                                </button>
+                            </div>
+                    
+                    `);
+                });
+            }
+        });
+    }
+
+    // function to load random ad images for the ad section
+    function loadRandomAdImage(selector) {
+            // Generate a random number between 1 and 9
+            let randomNumber = Math.floor(Math.random() * 9) + 1;
+
+            // Construct the image URL (Modify STATIC_IMAGE_URL to your actual image directory)
+            let imageUrl = `${AD_IMAGE_URL}ad_${randomNumber}.jpg`;
+
+            // Update the ad image in the HTML
+            selector.attr("src", imageUrl);
+    }
+
+});
+
 </script>
+
 {% endblock %}

@@ -1,0 +1,149 @@
+{% extends 'vendor_base.html' %}
+
+{% block title %}Vendor Products{% endblock %}
+
+{% block vendor_content %}
+<div class="max-w-5xl mx-auto p-6">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">Vendor Products</h1>
+
+    <!-- Toggle Button -->
+    <div class="flex justify-end mb-4">
+        <button id="toggleViewBtn" class="bg-gray-800 text-white px-4 py-2 rounded-md text-sm">Switch to Grid View</button>
+    </div>
+
+    <!-- Product Container -->
+    <div id="productContainer" class="grid grid-cols-1 gap-6">
+        {% for product in products %}
+        <div class="bg-white shadow-md rounded-lg p-4 flex items-center space-x-4 product-item">
+            <img src="{{ product.image_1_cloud_thumb_url }}" alt="{{ product.name }}" class="w-24 h-24 object-cover rounded-md product-image">
+            <div class="flex-1">
+                <h3 class="text-lg font-semibold">{{ product.name }}</h3>
+                <p class="text-green-600 font-bold">&#8358;{{ product.cprice }}</p>
+            </div>
+            <div class="flex space-x-2 product-actions">
+                <a href="{% url 'edit_product' %}?product_id={{ product.id }}" data-pid="{{product.id}}" class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-sm">Edit</a>
+                <a href="/delete-product/{{ product.id }}/" data-pid="{{product.id}}" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-sm">Delete</a>
+                {% if not product.is_published %}
+                <a href="/publish-product/{{ product.id }}/" data-pid="{{product.id}}" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 text-sm">Publish</a>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-gray-500 text-center">No products available.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    document.getElementById("toggleViewBtn").addEventListener("click", function () {
+        let container = document.getElementById("productContainer");
+        let btn = document.getElementById("toggleViewBtn");
+        let productItems = document.querySelectorAll(".product-item");
+        let productImages = document.querySelectorAll(".product-image");
+        let productActions = document.querySelectorAll(".product-actions");
+
+        if (container.classList.contains("grid-cols-1")) {
+            // Switch to Grid View
+            container.classList.remove("grid-cols-1");
+            container.classList.add("grid-cols-2", "md:grid-cols-3", "lg:grid-cols-4");
+
+            productItems.forEach(item => {
+                item.classList.remove("flex", "items-center", "space-x-4");
+                item.classList.add("flex", "flex-col", "items-center", "text-center");
+            });
+
+            productImages.forEach(img => {
+                img.classList.remove("w-24", "h-24");
+                img.classList.add("w-full", "h-40");
+            });
+
+            productActions.forEach(action => {
+                action.classList.remove("flex", "space-x-2");
+                action.classList.add("flex", "gap-2", "mt-4");
+            });
+
+            btn.textContent = "Switch to Tile View";
+        } else {
+            // Switch to Tile View
+            container.classList.remove("grid-cols-2", "md:grid-cols-3", "lg:grid-cols-4");
+            container.classList.add("grid-cols-1");
+
+            productItems.forEach(item => {
+                item.classList.remove("flex-col", "items-center", "text-center");
+                item.classList.add("flex", "items-center", "space-x-4");
+            });
+
+            productImages.forEach(img => {
+                img.classList.remove("w-full", "h-40");
+                img.classList.add("w-24", "h-24");
+            });
+
+            productActions.forEach(action => {
+                action.classList.remove("flex-wrap", "justify-center", "gap-2", "mt-3");
+                action.classList.add("flex", "space-x-2");
+            });
+
+            btn.textContent = "Switch to Grid View";
+        }
+    });
+
+    // Add a confirm dialog to the delete button
+    let deleteButtons = document.querySelectorAll(".product-actions a[href*='delete-product']");
+    deleteButtons.forEach(button => {
+        button.addEventListener("click", function (e) {
+            e.preventDefault();
+                Swal.fire({
+                title: "Are you sure?",
+                text: "This product will be permanently deleted!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#d33",
+                cancelButtonColor: "#3085d6",
+                confirmButtonText: "Yes, delete it!"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Disable the button to prevent multiple clicks
+                    disableButton(button);
+                    showLoading(button);
+                    deleteProduct(button.dataset.pid, button);
+                    //deleteProduct(button.href.split("/").pop());
+                    //window.location.href = button.href;
+                }
+            });
+        });
+    });
+
+    // function to send a delete request to the backend
+    function deleteProduct(productId, button) {
+        fetch("{% url 'vendor_products' %}", {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: JSON.stringify({product_id: productId, user_id: "{{ user.id }}"}),
+        }).then(response => {
+            if (response.ok) {
+                window.location.reload();
+                //window.location.href = "{% url 'vendor_products' %}";
+            } else {
+                Swal.fire({
+                    title: "Error",
+                    text: "An error occurred while deleting the product",
+                    icon: "error"
+                });
+                hideLoading(button, "Delete");
+                enableButton(button);
+            }
+        }).catch(error => {
+            Swal.fire({
+                title: "Error",
+                text: "Network error occurred. Please check your internet connection.",
+                icon: "error"
+            });
+            hideLoading(button, "Try Again");
+            enableButton(button);
+        });
+    }
+</script>
+{% endblock %}

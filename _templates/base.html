@@ -25,7 +25,7 @@
 <body class="bg-gray-100 text-gray-900 font-inter">
 
     <!-- Navigation Bar -->
-    <nav class="bg-white shadow-md p-4">
+    <nav class="bg-white shadow-md p-4 fixed top-0 left-0 w-full z-50 mb-2">
         <div class="container mx-auto flex justify-between items-center">
             <a href="{% url 'home' %}" class="text-xl font-semibold text-pink-500">{{SITE_NAME_FULL}}</a>
             <div>
@@ -42,33 +42,37 @@
                     {% if user.is_authenticated %}
                     <a href="{% url 'user_profile' %}" class="text-gray-700 px-4">Profile</a>
                     <a href="{% url 'user_logout' %}" class="text-gray-700 px-4">Logout</a>
-                    
                     {% else %}
                     <a href="{% url 'user_login' %}" class="text-gray-700 px-4">User Login</a>
                     {% endif %}
                     <a href="{% url 'vendor_login' %}" target="_blank" class="text-gray-700 px-4">Vendor</a>
+                    <!-- Cart Icon -->
+                    <button onclick="toggleCart()" class="relative text-gray-700">
+                        <i class="fas fa-shopping-cart text-2xl"></i>
+                        <span id="cart-count" class="absolute top-0 right-0 bg-pink-500 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center">0</span>
+                    </button>
                 {% endif %}
             </div>
         </div>
     </nav>
-
-    <!-- Page Content -->
-    <div class="container mx-auto mt-6">
-        <!-- Display messages -->
-        {% if messages %}
-        <div class="mb-4">
-            {% for message in messages %}
-            <div class="bg-{{ message.tags }}-100 border border-{{ message.tags }}-400 text-{{ message.tags }}-700 px-4 py-2 rounded-md mb-2">
-                {{ message }}
-            </div>
-            {% endfor %}
+    
+    <!-- Cart Sidebar -->
+    <div id="cartSidebar" class="fixed right-0 top-0 h-full w-80 bg-white shadow-lg transform translate-x-full transition-transform ease-in-out duration-300 p-4 z-50">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-semibold">Shopping Cart</h2>
+            <button onclick="toggleCart()" class="text-gray-600 hover:text-gray-900">&times;</button>
         </div>
-        {% endif %}
-
-        
-        {% block content %}
-        <!-- Child templates will inject content here -->
-        {% endblock %}
+        <div id="cartItems" class="space-y-4">
+            <p class="text-gray-500">Your cart is empty.</p>
+        </div>
+        <div class="mt-4">
+            <button class="w-full py-2 bg-pink-500 text-white rounded">Checkout</button>
+        </div>
+    </div>
+    
+    <!-- Page Content -->
+    <div class="container mx-auto mt-6 pt-11">
+        {% block content %}{% endblock %}
     </div>
 
     <!-- Footer -->
@@ -79,7 +83,18 @@
     <!-- Custom JS --> 
     {% load static %}
     <script src="{% static 'assets/js/main.js' %}"></script>
- 
+
+    <script>
+        function toggleCart() {
+            let cartSidebar = document.getElementById("cartSidebar");
+            if (cartSidebar.classList.contains("translate-x-full")) {
+                cartSidebar.classList.remove("translate-x-full");
+            } else {
+                cartSidebar.classList.add("translate-x-full");
+            }
+        }
+    </script>
+    
     {% block extra_js %}{% endblock %}
 </body>
 </html>

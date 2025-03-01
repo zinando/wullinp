@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils.text import slugify
 from datetime import datetime
+from django.contrib.postgres.search import SearchVectorField
+from django.contrib.postgres.indexes import GinIndex
 import random
 import string
 
@@ -63,6 +65,11 @@ class Products(models.Model):
     last_updated_by = models.BigIntegerField(blank=True, null=True)
     reviewed = models.BooleanField(default=False)
     admin_act_reason = models.TextField(blank=True, null=True)
+    search_vector = SearchVectorField(null=True, blank=True)
+
+    class Meta:
+        indexes = [GinIndex(fields=['search_vector'])]
+
 
     def __repr__(self):
         return self.name

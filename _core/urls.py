@@ -37,6 +37,9 @@ urlpatterns = [
     path('vendor/profile/update/', update_vendor_profile, name='update_vendor_profile'),
     path('user/change_password/', change_user_password, name='change_user_password'),
     path('vendor/', include('products.url'), name='add_product'),
+    path('vendor/', include('products.url'), name='vendor_products'),
+    path('vendor/', include('products.url'), name='edit_product'),
+    path('products/', include('products.url'), name='search_products'),
     # path('user/', include('user_profile.url'), name='update_user_profile'),
     # path('vendor/', include('user_profile.url'), name='update_vendor_profile'),
 

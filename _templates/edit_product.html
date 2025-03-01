@@ -1,0 +1,126 @@
+{% extends "vendor_base.html" %}
+
+{% block vendor_content %}
+
+<div class="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+    <div class="bg-white p-6 rounded-lg shadow-md w-full max-w-lg">
+        <h2 class="text-2xl font-bold text-gray-800 text-center mb-4">Edit Product</h2>
+
+        <div id="editProductForm">
+            <form method="POST" id="productEditForm">
+                {% csrf_token %}
+
+                <input type="hidden" name="product_id" value="{{ product.id }}">
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600">Product Name</label>
+                    <input type="text" name="product_name" value="{{ product.name }}" required
+                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600">Description</label>
+                    <textarea name="description" rows="2" required
+                              class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">{{ product.description }}</textarea>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600">Features</label>
+                    <textarea name="features" rows="3" required
+                              class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">{{ product.product_feature }}</textarea>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600">Category</label>
+                    <select name="category_id" required
+                            class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                        <option value="">Select Category</option>
+                        {% for category_id, category_name in categories %}
+                            <option value="{{ category_id }}" 
+                            {% if product.category.id == category_id %}selected{% endif %}
+                            >
+                            {{ category_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600">Initial Price</label>
+                    <input type="number" name="preprice" step="0.01" value="{{ product.preprice }}" required
+                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600">Current Price</label>
+                    <input type="number" name="cprice" step="0.01" value="{{ product.cprice }}" required
+                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600">Minimum Quantity</label>
+                    <input type="number" name="min_quantity" value="{{ product.min_quantity }}" required
+                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600">Stock</label>
+                    <input type="number" name="stock" value="{{ product.stock }}" required
+                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600">Buyer Note</label>
+                    <textarea name="buyer_note" rows="2"
+                              class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">{{ product.buyer_note }}</textarea>
+                </div>
+
+                <div id="error-message" class="text-red-500 text-sm font-semibold mt-2"></div>
+
+                <button id="update_button" type="submit" class="w-full bg-purple-600 text-white p-2 rounded mt-4 hover:bg-purple-700">
+                    Update Product
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById("productEditForm").addEventListener("submit", function (event) {
+        event.preventDefault();
+        document.getElementById("update_button").disabled = true;
+
+        const formData = new FormData(event.target);
+        let table_fields = {};
+        formData.forEach((value, key) => {
+            table_fields[key] = value;
+        });
+
+        let request_data = {'user_id': '{{ user.id }}', 'table_fields': table_fields};
+
+        fetch('/vendor/products/edit/?query=update_product', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}',
+            },
+            body: JSON.stringify(request_data),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                document.getElementById("error-message").innerText = data.errors || "An error occurred";
+                document.getElementById("update_button").disabled = false;
+                return;
+            }
+            alert("Product updated successfully!");
+            window.location.href = "/vendor/products/"; // Redirect to product list
+        })
+        .catch(error => {
+            document.getElementById("error-message").innerText = "Error: " + error.message;
+            document.getElementById("update_button").disabled = false;
+        });
+    });
+</script>
+
+{% endblock %}
