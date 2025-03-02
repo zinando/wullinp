@@ -152,7 +152,6 @@
 <script>
     const STATIC_IMAGE_URL = "{% static 'images/categories/' %}";
     const AD_IMAGE_URL = "{% static 'images/ads/' %}";
-    const displayProducts = new LocalStorageManager('displayProducts');
 
 $(document).ready(function () {
     
@@ -446,8 +445,6 @@ $(document).ready(function () {
         });
     
 
-//});
-
     // function to populate the category sections
     function populate_category_section(section_name, products, category){
         // restrict products to 4 items only
@@ -559,7 +556,7 @@ $(document).ready(function () {
         });
     }
 
-    // function to load random ad images for the ad section
+    // function to load random ad images for the ad section 
     function loadRandomAdImage(selector) {
             // Generate a random number between 1 and 9
             let randomNumber = Math.floor(Math.random() * 9) + 1;

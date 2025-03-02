@@ -42,37 +42,67 @@
                     {% if user.is_authenticated %}
                     <a href="{% url 'user_profile' %}" class="text-gray-700 px-4">Profile</a>
                     <a href="{% url 'user_logout' %}" class="text-gray-700 px-4">Logout</a>
+                    
                     {% else %}
                     <a href="{% url 'user_login' %}" class="text-gray-700 px-4">User Login</a>
                     {% endif %}
                     <a href="{% url 'vendor_login' %}" target="_blank" class="text-gray-700 px-4">Vendor</a>
                     <!-- Cart Icon -->
-                    <button onclick="toggleCart()" class="relative text-gray-700">
+                    <a href="#" id="cart-icon" class="relative text-gray-700">
                         <i class="fas fa-shopping-cart text-2xl"></i>
                         <span id="cart-count" class="absolute top-0 right-0 bg-pink-500 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center">0</span>
-                    </button>
+                    </a>
                 {% endif %}
             </div>
         </div>
+        <!-- Toast Notification -->
+        <div id="toast" class="hidden fixed top-5 right-5 bg-gray-800 text-white px-4 py-2 rounded shadow-lg"></div>
     </nav>
-    
+
     <!-- Cart Sidebar -->
-    <div id="cartSidebar" class="fixed right-0 top-0 h-full w-80 bg-white shadow-lg transform translate-x-full transition-transform ease-in-out duration-300 p-4 z-50">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-lg font-semibold">Shopping Cart</h2>
-            <button onclick="toggleCart()" class="text-gray-600 hover:text-gray-900">&times;</button>
-        </div>
-        <div id="cartItems" class="space-y-4">
-            <p class="text-gray-500">Your cart is empty.</p>
-        </div>
-        <div class="mt-4">
-            <button class="w-full py-2 bg-pink-500 text-white rounded">Checkout</button>
+    <div id="cart-sidebar" class="fixed top-0 right-0 h-full w-96 bg-white shadow-lg transform transition-transform duration-300 translate-x-full z-50">
+        <div class="p-6">
+            <!-- Cart Header -->
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold">Your Cart</h2>
+                <button id="close-cart" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Cart Items -->
+            <div id="cart-table" class="space-y-4">
+                <!-- Cart items will be dynamically inserted here -->
+                <div class="text-center text-gray-500">Your cart is empty.</div>
+            </div>
+
+            <!-- Cart Footer -->
+            <div class="mt-6 border-t pt-4">
+                <!-- <div class="flex justify-between mb-4">
+                    <span class="font-semibold">Subtotal:</span>
+                    <span id="cart-subtotal" class="font-semibold">₦0.00</span>
+                </div> -->
+                <a href="#" class="block w-full bg-pink-500 text-white text-center py-2 rounded hover:bg-pink-600">Checkout</a>
+            </div>
         </div>
     </div>
-    
+
     <!-- Page Content -->
     <div class="container mx-auto mt-6 pt-11">
-        {% block content %}{% endblock %}
+        <!-- Display messages -->
+        {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+            <div class="bg-{{ message.tags }}-100 border border-{{ message.tags }}-400 text-{{ message.tags }}-700 px-4 py-2 rounded-md mb-2">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}
+        <!-- Child templates will inject content here -->
+        {% endblock %}
     </div>
 
     <!-- Footer -->
@@ -82,19 +112,111 @@
 
     <!-- Custom JS --> 
     {% load static %}
+    <script src="{% static 'assets/js/akpa_aku.js' %}"></script>
+    <script src="{% static 'assets/js/cart_manager.js' %}"></script>
+    <script src="{% static 'assets/js/discount.js' %}"></script>
+    <script src="{% static 'assets/js/order_manager.js' %}"></script>
+    <script src="{% static 'assets/js/shipment.js' %}"></script>
+    <script src="{% static 'assets/js/user_info.js' %}"></script>
+    <script src="{% static 'assets/js/wishlist.js' %}"></script>
+    <script src="{% static 'assets/js/storage_engine.js' %}"></script>
+    <script src="{% static 'assets/js/site_info.js' %}"></script>
     <script src="{% static 'assets/js/main.js' %}"></script>
 
+    <!-- Cart Sidebar Script -->
     <script>
-        function toggleCart() {
-            let cartSidebar = document.getElementById("cartSidebar");
-            if (cartSidebar.classList.contains("translate-x-full")) {
-                cartSidebar.classList.remove("translate-x-full");
-            } else {
-                cartSidebar.classList.add("translate-x-full");
+        // Open Cart Sidebar
+        document.getElementById('cart-icon').addEventListener('click', function (e) {
+            e.preventDefault();
+            document.getElementById('cart-sidebar').classList.remove('translate-x-full');
+        });
+
+        // Close Cart Sidebar
+        document.getElementById('close-cart').addEventListener('click', function () {
+            document.getElementById('cart-sidebar').classList.add('translate-x-full');
+        });
+
+        // close cart sidebar when clicked outside
+        document.addEventListener('click', function (e) {
+            if (!e.target.closest('#cart-sidebar') && !e.target.closest('#cart-icon')) {
+                document.getElementById('cart-sidebar').classList.add('translate-x-full');
             }
+        });
+
+        // Example function to update cart items (replace with your actual logic)
+        function updateCartItems(items) {
+            const cartItemsContainer = document.getElementById('cart-items');
+            const cartSubtotal = document.getElementById('cart-subtotal');
+            let subtotal = 0;
+
+            // Clear existing items
+            cartItemsContainer.innerHTML = '';
+
+            if (items.length === 0) {
+                cartItemsContainer.innerHTML = '<div class="text-center text-gray-500">Your cart is empty.</div>';
+                cartSubtotal.textContent = '₦0.00';
+                return;
+            }
+
+            // Add new items
+            items.forEach(item => {
+                const itemHTML = `
+                    <div class="flex items-center space-x-4">
+                        <img src="${item.image}" alt="${item.name}" class="w-16 h-16 object-cover rounded">
+                        <div class="flex-1">
+                            <h3 class="font-semibold">${item.name}</h3>
+                            <p class="text-sm text-gray-500">${item.quantity} x ₦${item.price.toLocaleString()}</p>
+                        </div>
+                        <button class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                cartItemsContainer.insertAdjacentHTML('beforeend', itemHTML);
+                subtotal += item.price * item.quantity;
+            });
+
+            // Update subtotal
+            cartSubtotal.textContent = `₦${subtotal.toLocaleString()}`;
         }
+
+        // Example usage (replace with your actual cart data)
+        const cartItems = [
+            { name: 'Product 1', price: 2000, quantity: 2, image: 'https://via.placeholder.com/150' },
+            { name: 'Product 2', price: 5000, quantity: 1, image: 'https://via.placeholder.com/150' },
+        ];
+        //updateCartItems(cartItems);
     </script>
-    
+
     {% block extra_js %}{% endblock %}
+
+    <!-- Product Attributes Modal -->
+    <div id="productModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center">
+        <div class="bg-white rounded-lg p-6 w-96 shadow-lg">
+            <h2 class="text-lg font-semibold mb-4" id="modalTitle">Select Product Options</h2>
+
+            <!-- Quantity -->
+            <label class="block mb-2">Quantity:</label>
+            <input type="number" id="modalQuantity" class="w-full p-2 border rounded mb-4" min="1">
+
+            <!-- Size Selection (Hidden Initially) -->
+            <div id="sizeSelection" class="hidden mb-4">
+                <label class="block mb-2">Select Size:</label>
+                <select id="modalSize" class="w-full p-2 border rounded"></select>
+            </div>
+
+            <!-- Color Selection (Hidden Initially) -->
+            <div id="colorSelection" class="hidden mb-4">
+                <label class="block mb-2">Select Color:</label>
+                <select id="modalColor" class="w-full p-2 border rounded"></select>
+            </div>
+
+            <!-- Modal Buttons -->
+            <div class="flex justify-end space-x-2">
+                <button onclick="closeProductAttributesModal()" class="px-4 py-2 bg-gray-500 text-white rounded">Cancel</button>
+                <button type="button" id="confirmAddToCart" class="px-4 py-2 bg-pink-500 text-white rounded">Add to Cart</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

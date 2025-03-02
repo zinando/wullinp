@@ -17,7 +17,7 @@ function UserInfo() {
             this.deviceIp = data.ip;
           });
       }
-    };
+    }; 
   
     this.getUserKey = function () {
       return this.userId ? `user_${this.userId}` : `guest_${this.deviceIp}`;

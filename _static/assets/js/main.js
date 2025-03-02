@@ -3,6 +3,8 @@
     // ======================
     function Wullinp() {
         var self = this;
+
+        //localStorage.clear(); // Clear local storage on page load
       
         // Initialize modules
         this.storage = new StorageEngine();
@@ -13,14 +15,17 @@
         this.wishlist = new WishlistManager(this.storage, this.user);
         this.wallet = new WalletManager(this.storage, this.user);
         this.discount = new DiscountManager(this.storage, this.user); // Add discount manager
+        this.shipment = new ShipmentManager(this.storage, this.user); // Add shipment manager
       
         // Initialize on creation
         this.init = function () {
-          this.user.init();
-          this.cart.init();
-          this.wishlist.init();
-          this.wallet.init();
-          this.discount.init(); // Initialize discount manager
+            this.user.init();
+            this.cart.init();
+            this.wishlist.init();
+            this.wallet.init();
+            this.discount.init(); // Initialize discount manager
+            this.shipment.init(); // Initialize shipment manager
+            this.order.init();
         };
       
         this.init();
@@ -75,17 +80,17 @@
         button.style.opacity = "1";  // Restore visibility
     }
 
-    // function to show a toast message
-    function showToast(message, type) {
-        const toast = document.getElementById("toast");
-        toast.classList.add("show-toast");
-        toast.classList.add(type);
-        toast.innerText = message;
-        setTimeout(() => {
-            toast.classList.remove("show-toast");
-            toast.classList.remove(type);
-        }, 5000);
-    }
+    // // function to show a toast message
+    // function showToast(message, type) {
+    //     const toast = document.getElementById("toast");
+    //     toast.classList.add("show-toast");
+    //     toast.classList.add(type);
+    //     toast.innerText = message;
+    //     setTimeout(() => {
+    //         toast.classList.remove("show-toast");
+    //         toast.classList.remove(type);
+    //     }, 5000);
+    // }
 
     // for managing data that should persist across page reloads
     class LocalStorageManager {
@@ -129,13 +134,17 @@
         }
     }
 
+    // initialize the local storage manager
+    const displayProducts = new LocalStorageManager('displayProducts');
+
     // function to show toast
     function showToast(message, type) {
         let toast = document.getElementById("toast");
         let toastColors = {
             success: "bg-green-500",
             error: "bg-red-500",
-            warning: "bg-yellow-500"
+            warning: "bg-yellow-500",
+            info: "bg-blue-500",
         };
         
         toast.textContent = message;
@@ -148,40 +157,41 @@
         }, 3000);
     }
 
-    class Cart {
-        constructor() {
-            this.cart = JSON.parse(localStorage.getItem("cart")) || {};
-            this.updateCartCount();
-        }
+    // class Cart {
+    //     constructor() {
+    //         this.cart = JSON.parse(localStorage.getItem("cart")) || {};
+    //         this.updateCartCount();
+    //     }
     
-        addToCart(productId, productName, attributes) {
-            if (this.cart[productId]) {
-                this.cart[productId].quantity += attributes.quantity;
-            } else {
-                this.cart[productId] = { name: productName, ...attributes };
-            }
-            this.saveCart();
-            showToast(`${productName} added to cart`, "success");
-        }
+    //     addToCart(productId, productName, attributes) {
+    //         if (this.cart[productId]) {
+    //             this.cart[productId].quantity += attributes.quantity;
+    //         } else {
+    //             this.cart[productId] = { name: productName, ...attributes };
+    //         }
+    //         this.saveCart();
+    //         showToast(`${productName} added to cart`, "success");
+    //     }
     
-        saveCart() {
-            localStorage.setItem("cart", JSON.stringify(this.cart));
-            this.updateCartCount();
-        }
+    //     saveCart() {
+    //         localStorage.setItem("cart", JSON.stringify(this.cart));
+    //         this.updateCartCount();
+    //     }
     
-        updateCartCount() {
-            let count = Object.keys(this.cart).length;
-            document.getElementById("cart-count").textContent = count;
-        }
-    }
+    //     updateCartCount() {
+    //         let count = Object.keys(this.cart).length;
+    //         document.getElementById("cart-count").textContent = count;
+    //     }
+    // }
 
-    const cart = new Cart();
+    // const cart = new Cart();
 
     // Function to open the product attributes modal
-    function openProductAttributesModal(productId, productName, stockCount, sizes, colors) {
+    function openProductAttributesModal(productId, productName, stockCount, sizes, colors, price) {
         // Store product ID
         $("#confirmAddToCart").data("id", productId);
         $("#confirmAddToCart").data("name", productName);
+        $("#confirmAddToCart").data("price", price);
     
         // Set Modal Title
         $("#modalTitle").text(`Select Options for ${productName}`);
@@ -220,42 +230,46 @@
         $("#productModal").addClass("hidden");
     }
     
-    // Function to trigger the product attributes modal
-    $(document).on("click", ".addToCart", function () {
-        let productId = $(this).data("id");
-        let productName = $(this).data("name");
-        let stockCount = parseInt($(this).data("stock"));
-        let sizes = "[24, 26, 28, 30, 32]"; //$(this).data("sizes"); // Expected to be an array
-        let colors = '["red", "blue", "green", "black", "silver"]'; //$(this).data("colors"); // Expected to be an array
+    $(document).ready(function() {
+       // Function to trigger the product attributes modal
+        $(document).on("click", ".addToCart", function () {
+            let productId = $(this).data("id");
+            let productName = $(this).data("name");
+            let price = parseFloat($(this).data("price"));
+            let stockCount = parseInt($(this).data("stock"));
+            let sizes = "[24, 26, 28, 30, 32]"; //$(this).data("sizes"); // Expected to be an array
+            let colors = '["red", "blue", "green", "black", "silver"]'; //$(this).data("colors"); // Expected to be an array
 
-        // if sizes and colors are strings, convert them to arrays
-        sizes = JSON.parse(sizes || "[]");
-        colors = JSON.parse(colors || "[]");
+            // if sizes and colors are strings, convert them to arrays
+            sizes = JSON.parse(sizes || "[]");
+            colors = JSON.parse(colors || "[]");
 
-        openProductAttributesModal(productId, productName, stockCount, sizes, colors);
-        //showToast(`${productName} has been added to cart.`, "success");
-    });
+            openProductAttributesModal(productId, productName, stockCount, sizes, colors, price);
+        });
 
-    // Function to collect product attributes and add to cart
-    $(document).on("click", "#confirmAddToCart", function () {
-        let productId = $(this).data("id");
-        let productName = $(this).data("name");
-        let quantity = parseInt($("#modalQuantity").val());
-        let size = $("#modalSize").val() || null;
-        let color = $("#modalColor").val() || null;
-    
-        if (quantity < 1) {
-            showToast("Please enter a valid quantity", "error");
-            return;
-        }
-    
-        let attributes = { quantity };
-        if (size) attributes.size = size;
-        if (color) attributes.color = color;
-    
-        cart.addToCart(productId, productName, attributes);
-        closeProductAttributesModal();
-        showToast(`${productName} added to cart`, "success");
+        // Function to collect product attributes and add to cart
+        $(document).on("click", "#confirmAddToCart", function () {
+            let productId = $(this).data("id");
+            let productName = $(this).data("name");
+            let price = parseFloat($(this).data("price"));
+            let quantity = parseInt($("#modalQuantity").val());
+            let size = $("#modalSize").val() || null;
+            let color = $("#modalColor").val() || null;
+        
+            if (quantity < 1) {
+                showToast("Please enter a valid quantity", "error");
+                return;
+            }
+        
+            let attributes = { quantity };
+            if (size) attributes.size = size;
+            if (color) attributes.color = color;
+        
+            //cart.addToCart(productId, productName, attributes);
+            wullinp.cart.addItem({ productId, productName, price, ...attributes });
+            closeProductAttributesModal();
+            showToast(`${productName} added to cart`, "success");
+        });
     });
     
 

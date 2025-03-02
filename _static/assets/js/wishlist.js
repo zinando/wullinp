@@ -2,25 +2,26 @@
 // Wishlist Management Module
 // ======================
 function WishlistManager(storage, user) {
-    this.storage = storage;
+    this.storage = storage; 
     this.user = user;
+    const storageKey = this.user.getUserKey() + "_wishlist";
   
     this.init = function () {
-      if (!this.storage.getItem(this.user.getUserKey() + "_wishlist")) {
-        this.storage.setItem(this.user.getUserKey() + "_wishlist", []);
+      if (!this.storage.getItem(storageKey)) {
+        this.storage.setItem(storageKey, []);
       }
     };
   
     this.addToWishlist = function (item) {
-      var wishlist = this.storage.getItem(this.user.getUserKey() + "_wishlist");
+      var wishlist = this.storage.getItem(storageKey);
       wishlist.push(item);
-      this.storage.setItem(this.user.getUserKey() + "_wishlist", wishlist);
+      this.storage.setItem(storageKey, wishlist);
     };
   
     this.removeFromWishlist = function (productId) {
       var wishlist = this.storage
-        .getItem(this.user.getUserKey() + "_wishlist")
+        .getItem(storageKey)
         .filter((i) => i.productId !== productId);
-      this.storage.setItem(this.user.getUserKey() + "_wishlist", wishlist);
+      this.storage.setItem(storageKey, wishlist);
     };
   }

@@ -4,8 +4,9 @@
 function ShipmentManager(storage, user) {
     this.storage = storage;
     this.user = user;
+    const storageKey = this.user.getUserKey() + "_shipping";
   
-    // Constants
+    // Constants 
     this.freeShippingThreshold = 20000; // Free shipping for orders above ₦20,000
     this.volumetricDivisor = 5000; // Used for volumetric weight calculation
     this.perKgRate = 200; // Default per kg rate if external API fails
@@ -13,8 +14,8 @@ function ShipmentManager(storage, user) {
   
     // Initialize
     this.init = function () {
-      if (!this.storage.getItem(this.user.getUserKey() + "_shipping")) {
-        this.storage.setItem(this.user.getUserKey() + "_shipping", {
+      if (!this.storage.getItem(storageKey)) {
+        this.storage.setItem(storageKey, {
           city: null,
           deliveryMethod: "standard",
           preferredCourier: "GIG", // Default to GIG Logistics
@@ -24,11 +25,11 @@ function ShipmentManager(storage, user) {
   
     // Set shipping information
     this.setShippingInfo = function (city, deliveryMethod, preferredCourier) {
-      var shippingInfo = this.storage.getItem(this.user.getUserKey() + "_shipping");
+      var shippingInfo = this.storage.getItem(storageKey);
       shippingInfo.city = city;
       shippingInfo.deliveryMethod = deliveryMethod;
       shippingInfo.preferredCourier = preferredCourier || "GIG";
-      this.storage.setItem(this.user.getUserKey() + "_shipping", shippingInfo);
+      this.storage.setItem(storageKey, shippingInfo);
     };
   
     // Fetch courier rates from an external API
@@ -51,7 +52,7 @@ function ShipmentManager(storage, user) {
   
     // Calculate shipping cost dynamically
     this.calculateShippingCost = async function (order) {
-      var shippingInfo = this.storage.getItem(this.user.getUserKey() + "_shipping");
+      var shippingInfo = this.storage.getItem(storageKey);
       var city = shippingInfo.city || "Remote Area";
       var deliveryMethod = shippingInfo.deliveryMethod || "standard";
       var preferredCourier = shippingInfo.preferredCourier || "GIG";
