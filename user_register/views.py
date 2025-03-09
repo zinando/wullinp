@@ -11,13 +11,6 @@ def user_register(request):
         password = request.POST.get('password')
         phone = format_phone_number(request.POST.get('phone'))
         username = generate_username_from_phone_number(phone)
-
-        # delete existing user data
-        # if Profile.objects.filter(phone=phone).exists():
-        #     Profile.objects.filter(phone=phone).delete()
-        # if User.objects.filter(email=email).exists():
-        #     User.objects.filter(email=email).delete()
-
         # check if user already exists
         if User.objects.filter(username=username).exists():
             return render(request, 'user_signup.html', {'error_message': 'This phone number is already in use by another user'})

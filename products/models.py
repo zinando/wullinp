@@ -46,6 +46,10 @@ class Products(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     sku = models.CharField(max_length=100, blank=True, null=True, unique=True)
+    weight = models.FloatField(default=1) # weight in kg
+    width = models.FloatField(default=0.025) # width in meters
+    length = models.FloatField(default=0.025) #lenght in meters
+    height = models.FloatField(default=0.025) # height in meters
     slug = models.SlugField(unique=True, blank=True)
     product_feature = models.JSONField(blank=True, null=True)
     cprice = models.DecimalField(max_digits=18, decimal_places=2, default=1.00)

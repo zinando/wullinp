@@ -2,92 +2,74 @@
 // Shipment Management Module
 // ======================
 function ShipmentManager(storage, user) {
-    this.storage = storage;
-    this.user = user;
-    const storageKey = this.user.getUserKey() + "_shipping";
-  
-    // Constants 
-    this.freeShippingThreshold = 20000; // Free shipping for orders above ₦20,000
-    this.volumetricDivisor = 5000; // Used for volumetric weight calculation
-    this.perKgRate = 200; // Default per kg rate if external API fails
-    this.baseCost = 1000; // Base shipping cost
-  
-    // Initialize
-    this.init = function () {
-      if (!this.storage.getItem(storageKey)) {
-        this.storage.setItem(storageKey, {
-          city: null,
-          deliveryMethod: "standard",
-          preferredCourier: "GIG", // Default to GIG Logistics
-        });
-      }
-    };
-  
-    // Set shipping information
-    this.setShippingInfo = function (city, deliveryMethod, preferredCourier) {
-      var shippingInfo = this.storage.getItem(storageKey);
-      shippingInfo.city = city;
-      shippingInfo.deliveryMethod = deliveryMethod;
-      shippingInfo.preferredCourier = preferredCourier || "GIG";
-      this.storage.setItem(storageKey, shippingInfo);
-    };
-  
-    // Fetch courier rates from an external API
-    this.getCourierRates = async function (city, deliveryMethod) {
-      try {
-        const response = await axios.get("https://api.example.com/shipping-rates", {
-          params: { city, deliveryMethod },
-        });
-  
-        if (response.data && response.data.rates) {
-          return response.data.rates; // Assume API returns { "DHL": 1.2, "FedEx": 1.5, "GIG": 1.0 }
-        }
-      } catch (error) {
-        console.error("Failed to fetch courier rates:", error);
-      }
-  
-      // Fallback rates if API request fails
-      return { DHL: 1.2, FedEx: 1.5, GIG: 1.0 };
-    };
-  
-    // Calculate shipping cost dynamically
-    this.calculateShippingCost = async function (order) {
-      var shippingInfo = this.storage.getItem(storageKey);
-      var city = shippingInfo.city || "Remote Area";
-      var deliveryMethod = shippingInfo.deliveryMethod || "standard";
-      var preferredCourier = shippingInfo.preferredCourier || "GIG";
-      var isJumiaExpress = order.isJumiaExpress || false;
-  
-      // Fetch courier rates
-      var courierRates = await this.getCourierRates(city, deliveryMethod);
-      var shippingMultiplier = courierRates[preferredCourier] || 1.0;
-  
-      // Calculate total weight and special handling fees
-      var totalWeight = 0;
-      var specialHandlingFee = 0;
-  
-      order.items.forEach((item) => {
-        var weight = item.weight || 1;
-        var volumetricWeight = (item.length * item.width * item.height) / this.volumetricDivisor;
-        var effectiveWeight = Math.max(weight, volumetricWeight);
-  
-        totalWeight += effectiveWeight;
-  
-        if (item.isFragile) specialHandlingFee += 500;
-        if (item.isBulky) specialHandlingFee += 1000;
+  this.storage = storage;
+  this.user = user;
+  const storageKey = this.user.getUserKey() + "_shipping";
+
+  // Constants
+  this.baseCost = 2000; // Base shipping cost per order
+  this.weightFactor = 100; // Cost per kg
+  this.internationalSurcharge = 2000; // Additional cost for international shipping
+  this.nonLagosSurcharge = 1000; // Additional cost for non-Lagos addresses
+  this.expressDeliverySurcharge = 1000; // Additional cost for express delivery
+  this.homeDeliverySurcharge = 1000; // Additional cost for home delivery
+
+  // Initialize
+  this.init = function () {
+    if (!this.storage.getItem(storageKey)) {
+      this.storage.setItem(storageKey, {
+        id: 0,
+        city: "",
+        state: "",
+        country: "Nigeria",
+        deliveryMethod: "home",
+        deliveryType: "regular",
       });
-  
-      // Calculate shipping cost
-      var weightCharge = totalWeight * this.perKgRate;
-      var baseCost = this.baseCost * shippingMultiplier;
-      var shippingCost = baseCost + weightCharge + specialHandlingFee;
-  
-      // Free shipping for high-value orders
-      if (order.totalAmount >= this.freeShippingThreshold) shippingCost = 0;
-  
-      // Discount for Jumia Express
-      if (isJumiaExpress) shippingCost *= 0.8;
-  
-      return Math.ceil(shippingCost);
-    };
-  }
+    }
+  };
+
+  this.getShippingInfo = function () {
+    return this.storage.getItem(storageKey);
+  };
+
+  // Set shipping information
+  this.setShippingInfo = function (key, value) {
+    var shippingInfo = this.storage.getItem(storageKey);
+    shippingInfo[key] = value;
+    this.storage.setItem(storageKey, shippingInfo);
+  };
+
+  // Calculate shipping cost dynamically
+  this.calculateShippingCost = function (cartItems) {
+    // Calculate total weight of the order
+    var totalWeight = 0;
+    cartItems.forEach((item) => {
+      totalWeight += item.weight * item.quantity;
+    });
+
+    // Initialize shipping cost with base cost
+    var shippingCost = this.baseCost;
+
+    // Apply surcharges based on user address
+    var shippingInfo = this.storage.getItem(storageKey);
+    if (shippingInfo.country.toLowerCase() !== "nigeria") {
+      shippingCost += this.internationalSurcharge;
+    } else if (shippingInfo.state.toLowerCase() !== "lagos") {
+      shippingCost += this.nonLagosSurcharge;
+    }
+
+    // Apply surcharges based on delivery type and method
+    if (shippingInfo.deliveryType === "express") {
+      shippingCost += this.expressDeliverySurcharge;
+    }
+
+    if (shippingInfo.deliveryMethod === "home") {
+      shippingCost += this.homeDeliverySurcharge;
+    }
+
+    // Add weight-based cost
+    shippingCost += totalWeight * this.weightFactor;
+
+    return shippingCost;
+  };
+}

@@ -19,6 +19,8 @@ from django.urls import path, include
 import home.views
 from user_profile.views import update_profile, update_vendor_profile, change_user_password
 from products.views import ProductView
+from user_profile.views import fetch_states_data
+from discounts.views import DiscountView
 
 
 urlpatterns = [
@@ -40,6 +42,9 @@ urlpatterns = [
     path('vendor/', include('products.url'), name='vendor_products'),
     path('vendor/', include('products.url'), name='edit_product'),
     path('products/', include('products.url'), name='search_products'),
+    path('checkout/', include('orders.url')),
+    path('states_data/', fetch_states_data, name='fetch_states_data'),
+    path('xvcdetdfgrtgasd/', DiscountView.as_view(), name='discounts'),
     # path('user/', include('user_profile.url'), name='update_user_profile'),
     # path('vendor/', include('user_profile.url'), name='update_vendor_profile'),
 

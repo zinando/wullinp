@@ -5,7 +5,10 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.contrib import messages
 from django.contrib.auth.models import User
+from .models import Address
+from .serializer import AddressSerializer
 from _core.utils.helpers import is_email_exists, is_phone_exists, is_business_name_exists
+import requests
 
 # Create your views here.
 @login_required(login_url='user_login')
@@ -122,3 +125,66 @@ def change_user_password(request):
     messages.success(request, message)
 
     return Response({'message': message}, status=status.HTTP_200_OK)
+
+# endpoint for managing user addresses
+@api_view(['GET', 'POST', 'PUT', 'DELETE'])
+@login_required(login_url='user_login')
+def user_addresses(request):
+    user = request.user
+    if request.method == 'GET':
+        addresses = Address.objects.filter(user=user, deleted=False)
+        addresses_serializer = AddressSerializer(addresses, many=True)
+        print(addresses_serializer.data)
+        return Response({'addresses': addresses_serializer.data}, status=status.HTTP_200_OK)
+    if request.method == 'POST':
+        data = request.data
+        address = Address.objects.create(
+            user=user,
+            house_address=data.get('house_address'),
+            city=data.get('city').lower(),
+            city_id=data.get('city_id', None),
+            lga=data.get('lga'),
+            lga_id=data.get('lga_id', None),
+            state=data.get('state'),
+            state_id=data.get('state_id', None),
+            
+            country=data.get('country'),
+            country_id=data.get('country_id', None),
+            zip=data.get('zip', None),
+            phone=data.get('phone', None),
+        )
+        messages.success(request, 'Address added successfully.')
+        address_serializer = AddressSerializer(address)
+        return Response({'status':1,'address': address_serializer.data}, status=status.HTTP_201_CREATED)
+    if request.method == 'PUT':
+        data = request.data
+        address_id = data.get('address_id')
+        address = Address.objects.get(id=address_id)
+        address.house_address = data.get('house_address')
+        address.city = data.get('city')
+        address.city_id = data.get('city_id')
+        address.state = data.get('state')
+        address.state_id = data.get('state_id')
+        address.country = data.get('country')
+        address.country_id = data.get('country_id')
+        address.zip = data.get('zip')
+        address.phone = data.get('phone')
+        address.save()
+        address_serializer = AddressSerializer(address)
+        return Response({'address': address_serializer.data}, status=status.HTTP_200_OK)
+    if request.method == 'DELETE':
+        data = request.data
+        address_id = data.get('address_id')
+        address = Address.objects.get(id=address_id)
+        address.deleted = True
+        address.save()
+        return Response({'message': 'Address deleted successfully.'}, status=status.HTTP_200_OK)
+    return Response({'message': 'Invalid request.'}, status=status.HTTP_400_BAD_REQUEST)
+
+# create a proxy for fetching data from external api
+@api_view(['GET'])
+def fetch_states_data(request):
+    url = 'https://gps-naija.onrender.com/states'
+    response = requests.get(url)
+    data = response.json()
+    return Response(data, status=status.HTTP_200_OK)

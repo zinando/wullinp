@@ -44,3 +44,28 @@ def check_if_category_has_products(category_id, min_products=1):
 
 # def generate_skux():
 #     return str(uuid.uuid4().hex[:10]).upper()
+
+def calculate_shipping_cost(cart_items, user_address, delivery_method, delivery_type):
+    base_cost = 2000  # Base shipping cost per order
+    weight_factor = 100  # Cost per kg
+    total_weight = sum(item.product.weight * item.quantity for item in cart_items)
+
+    # Higher cost for international shipping
+    if user_address.country != "Nigeria":
+        base_cost += 2000
+    
+    elif user_address.state != "lagos":
+        base_cost += 1000
+    
+    if delivery_type == "express":
+        base_cost += 1000 # Additional cost for express delivery
+
+    if delivery_method == "home":
+        base_cost += 1000 # Additional cost for home delivery
+
+    return base_cost + (total_weight * weight_factor)
+
+def verify_order(request, order_details):
+
+    return {'status':1, 'message':'Order verified successfully', 'error':[]}
+

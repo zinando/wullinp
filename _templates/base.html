@@ -18,7 +18,10 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- jQuery & AJAX -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>   
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+    <!-- paystack js -->
+    <script src="https://js.paystack.co/v1/inline.js"></script>
 
     {% block extra_css %}{% endblock %}
 </head>
@@ -82,7 +85,7 @@
                     <span class="font-semibold">Subtotal:</span>
                     <span id="cart-subtotal" class="font-semibold">₦0.00</span>
                 </div> -->
-                <a href="#" class="block w-full bg-pink-500 text-white text-center py-2 rounded hover:bg-pink-600">Checkout</a>
+                <a href="#" onclick="checkout()" class="block w-full bg-pink-500 text-white text-center py-2 rounded hover:bg-pink-600">Checkout</a>
             </div>
         </div>
     </div>
@@ -121,7 +124,9 @@
     <script src="{% static 'assets/js/wishlist.js' %}"></script>
     <script src="{% static 'assets/js/storage_engine.js' %}"></script>
     <script src="{% static 'assets/js/site_info.js' %}"></script>
+    <script src="{% static 'assets/js/states_manager.js' %}"></script>
     <script src="{% static 'assets/js/main.js' %}"></script>
+    <script src="{% static 'assets/js/paystack_js.js' %}"></script>
 
     <!-- Cart Sidebar Script -->
     <script>
@@ -143,49 +148,49 @@
             }
         });
 
-        // Example function to update cart items (replace with your actual logic)
-        function updateCartItems(items) {
-            const cartItemsContainer = document.getElementById('cart-items');
-            const cartSubtotal = document.getElementById('cart-subtotal');
-            let subtotal = 0;
+        // function to navigate to the checkout page
+        // first log cart items  to db
+        //fetch user id
+        // navigate to checkout page
+        async function checkout() {
+            try {
+                // Prepare request payload
+                const cartItems = wullinp.cart.getCart();
+                const response = await fetch("{% url 'checkout' %}?action=save-cart", {
+                    method: "POST",
+                    body: JSON.stringify(cartItems),
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": "{{ csrf_token }}"
+                    }
+                });
 
-            // Clear existing items
-            cartItemsContainer.innerHTML = '';
+                // Check if request was successful
+                if (!response.ok) {
+                    throw new Error(`Checkout failed: ${response.status}- ${response.statusText}`);
+                }
 
-            if (items.length === 0) {
-                cartItemsContainer.innerHTML = '<div class="text-center text-gray-500">Your cart is empty.</div>';
-                cartSubtotal.textContent = '₦0.00';
-                return;
+                // Parse response (if needed)
+                const result = await response.json();
+                console.log("Checkout Response:", result);
+                //return;
+
+                // // Redirect to checkout page with cart details
+                // const shipping = 0;
+                // const discount = JSON.stringify(wullinp.discount.getAppliedDiscounts());
+                // const queryParams = new URLSearchParams({
+                //     cart_items: JSON.stringify(cartItems),
+                //     shipping,
+                //     discount
+                // }).toString();
+
+                window.location.href = `{% url 'checkout' %}`;
+            } catch (error) {
+                console.error("Error during checkout:", error);
+                showToast("An error occurred during checkout. Please try again.", "error");
             }
-
-            // Add new items
-            items.forEach(item => {
-                const itemHTML = `
-                    <div class="flex items-center space-x-4">
-                        <img src="${item.image}" alt="${item.name}" class="w-16 h-16 object-cover rounded">
-                        <div class="flex-1">
-                            <h3 class="font-semibold">${item.name}</h3>
-                            <p class="text-sm text-gray-500">${item.quantity} x ₦${item.price.toLocaleString()}</p>
-                        </div>
-                        <button class="text-gray-500 hover:text-gray-700">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                `;
-                cartItemsContainer.insertAdjacentHTML('beforeend', itemHTML);
-                subtotal += item.price * item.quantity;
-            });
-
-            // Update subtotal
-            cartSubtotal.textContent = `₦${subtotal.toLocaleString()}`;
         }
 
-        // Example usage (replace with your actual cart data)
-        const cartItems = [
-            { name: 'Product 1', price: 2000, quantity: 2, image: 'https://via.placeholder.com/150' },
-            { name: 'Product 2', price: 5000, quantity: 1, image: 'https://via.placeholder.com/150' },
-        ];
-        //updateCartItems(cartItems);
     </script>
 
     {% block extra_js %}{% endblock %}

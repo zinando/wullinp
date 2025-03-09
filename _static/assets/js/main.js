@@ -16,6 +16,7 @@
         this.wallet = new WalletManager(this.storage, this.user);
         this.discount = new DiscountManager(this.storage, this.user); // Add discount manager
         this.shipment = new ShipmentManager(this.storage, this.user); // Add shipment manager
+        this.states = new StatesManager(this.storage, this.site.siteProxyUrl); // Add states manager");
       
         // Initialize on creation
         this.init = function () {
@@ -26,6 +27,7 @@
             this.discount.init(); // Initialize discount manager
             this.shipment.init(); // Initialize shipment manager
             this.order.init();
+            this.states.init();
         };
       
         this.init();
@@ -65,6 +67,20 @@
         selector.innerHTML = text;
         selector.disabled = false;
     }
+    
+    // create a func that takes a string and return a slug
+    function slugify(string) {
+        return string
+            .toString()
+            .normalize("NFD") // split an accented letter in the base letter and the accent
+            .replace(/[\u0300-\u036f]/g, "") // remove all previously split accents
+            .toLowerCase()
+            .trim()
+            .replace(/\s+/g, "-") // replace spaces with -
+            .replace(/&/g, "-and-") // replace & with 'and'
+            .replace(/[^\w-]+/g, "") // remove all non-word chars
+            .replace(/--+/g, "-"); // replace multiple - with single -
+    }
 
     // function to disable clicks on any button
     function disableButton(button) {
@@ -80,17 +96,23 @@
         button.style.opacity = "1";  // Restore visibility
     }
 
-    // // function to show a toast message
-    // function showToast(message, type) {
-    //     const toast = document.getElementById("toast");
-    //     toast.classList.add("show-toast");
-    //     toast.classList.add(type);
-    //     toast.innerText = message;
-    //     setTimeout(() => {
-    //         toast.classList.remove("show-toast");
-    //         toast.classList.remove(type);
-    //     }, 5000);
-    // }
+    function triggerProcessing(){
+
+        Swal.fire({
+          title: 'Processing..',
+          html: 'Confirming your transaction, please be patient',
+          timerProgressBar: true,
+          backdrop: true,
+          allowOutsideClick:false,
+          allowEscapeKey:false,
+          onBeforeOpen: () => {
+            Swal.showLoading()
+           
+          }
+        
+          
+        })
+    }
 
     // for managing data that should persist across page reloads
     class LocalStorageManager {
@@ -187,11 +209,15 @@
     // const cart = new Cart();
 
     // Function to open the product attributes modal
-    function openProductAttributesModal(productId, productName, stockCount, sizes, colors, price) {
+    function openProductAttributesModal(productId, productName, stockCount, weight, width, height, length, sizes, colors, price) {
         // Store product ID
         $("#confirmAddToCart").data("id", productId);
         $("#confirmAddToCart").data("name", productName);
         $("#confirmAddToCart").data("price", price);
+        $("#confirmAddToCart").data("weight", weight);
+        $("#confirmAddToCart").data("width", width);
+        $("#confirmAddToCart").data("height", height);
+        $("#confirmAddToCart").data("length", length);
     
         // Set Modal Title
         $("#modalTitle").text(`Select Options for ${productName}`);
@@ -237,6 +263,10 @@
             let productName = $(this).data("name");
             let price = parseFloat($(this).data("price"));
             let stockCount = parseInt($(this).data("stock"));
+            let weight = parseFloat($(this).data("weight"));
+            let width = parseFloat($(this).data("width"));
+            let height = parseFloat($(this).data("height"));
+            let length = parseFloat($(this).data("length"));
             let sizes = "[24, 26, 28, 30, 32]"; //$(this).data("sizes"); // Expected to be an array
             let colors = '["red", "blue", "green", "black", "silver"]'; //$(this).data("colors"); // Expected to be an array
 
@@ -244,13 +274,17 @@
             sizes = JSON.parse(sizes || "[]");
             colors = JSON.parse(colors || "[]");
 
-            openProductAttributesModal(productId, productName, stockCount, sizes, colors, price);
+            openProductAttributesModal(productId, productName, stockCount, weight, width, height, length, sizes, colors, price);
         });
 
         // Function to collect product attributes and add to cart
         $(document).on("click", "#confirmAddToCart", function () {
             let productId = $(this).data("id");
             let productName = $(this).data("name");
+            let weight = parseFloat($(this).data("weight"));
+            let width = parseFloat($(this).data("width"));
+            let height = parseFloat($(this).data("height"));
+            let length = parseFloat($(this).data("length"));
             let price = parseFloat($(this).data("price"));
             let quantity = parseInt($("#modalQuantity").val());
             let size = $("#modalSize").val() || null;
@@ -266,10 +300,13 @@
             if (color) attributes.color = color;
         
             //cart.addToCart(productId, productName, attributes);
-            wullinp.cart.addItem({ productId, productName, price, ...attributes });
+            wullinp.cart.addItem({ productId, productName, price, weight, width, height, length, ...attributes });
             closeProductAttributesModal();
             showToast(`${productName} added to cart`, "success");
         });
     });
+
+    // fetch states data from API
+    wullinp.states.fetchStates();
     
 
