@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from products.models import Products
+import uuid
 
 # Create your models here.
 #create cart model
@@ -44,19 +45,19 @@ class Order(models.Model):
         WALLET = "WALLET", "Wallet"
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    order_number = models.CharField(max_length=50, unique=True)
+    order_number = models.CharField(max_length=50, unique=True, editable=False)
     sub_total = models.FloatField(default=0)
     total = models.FloatField(default=0)
     discount = models.FloatField(default=0)
     shipping_cost = models.FloatField(default=0)
     payment_status = models.CharField(choices=PaymentStatus.choices, default=PaymentStatus.PENDING, max_length=20)
     discount_code = models.CharField(max_length=50, null=True, blank=True)
-    delivery_address = models.TextField()
-    delivery_city = models.CharField(max_length=50)
-    delivery_state = models.CharField(max_length=50)
-    delivery_country = models.CharField(max_length=50)
-    delivery_method = models.CharField(max_length=50)
-    delivery_type = models.CharField(max_length=50)
+    delivery_address = models.TextField(null=True, blank=True)
+    delivery_city = models.CharField(max_length=50, null=True, blank=True)
+    delivery_state = models.CharField(max_length=50, null=True, blank=True)
+    delivery_country = models.CharField(max_length=50, null=True, blank=True)
+    delivery_method = models.CharField(max_length=50, null=True, blank=True)
+    delivery_type = models.CharField(max_length=50, null=True, blank=True)
     order_status = models.CharField(choices=OrderStatus.choices, default=OrderStatus.PENDING, max_length=20)
     txn_ref = models.CharField(max_length=100, null=True, blank=True)
     order_type = models.CharField(choices=OrderType.choices, default=OrderType.CHECKOUT, max_length=20)
@@ -70,6 +71,11 @@ class Order(models.Model):
 
     def __str__(self):
         return f'{self.user.username} - {self.total_price}'
+    
+    def save(self, *args, **kwargs):
+        if not self.order_number:
+            self.order_number = f'ORD-{str(self.user.id)}-{str(self.created_at.strftime("%Y%m%d%H%M%S"))}'
+        super().save(*args, **kwargs)
 
 # create order item model
 class OrderItem(models.Model):
@@ -121,25 +127,41 @@ class UserCards(models.Model):
     def __str__(self) -> str:
         return self.card_name
 class PGRequest(models.Model): #payment gateway request log
+    class TransactionType(models.TextChoices):
+        DONATION = "DONATION", "Donation"
+        CHECKOUT = "CHECKOUT", "Checkout"
+    class ResponseStatus(models.TextChoices):
+        PENDING = "PENDING", "Pending"
+        SUCCESS = "SUCCESS", "Success"
+        FAILED = "FAILED", "Failed"
+        CANCELLED = "CANCELLED", "Cancelled"
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="transactions")
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="transactions")
-    user_card = models.ForeignKey(UserCards, on_delete=models.CASCADE, related_name="transactions")
+    user_card = models.ForeignKey(UserCards, on_delete=models.CASCADE, related_name="transactions", null=True, blank=True)
     amount = models.FloatField( default=0)
-    refid = models.CharField( max_length=100, null=True, blank=True)
-    txn_type = models.CharField( max_length=50, null=True, blank=True)
-    customeremail = models.EmailField()
+    ref_id = models.CharField( max_length=100, null=True, blank=True)
+    txn_type = models.CharField(choices=TransactionType.choices, default=TransactionType.CHECKOUT, max_length=20)
+    customer_email = models.EmailField()
     hook_res_id = models.CharField( max_length=50, null=True, blank=True)
-    res_status = models.CharField( max_length=50, null=True, blank=True)
-    callback_body = models.TextField()
-    hook_verified = models.BooleanField(default=False)
+    res_status = models.CharField(choices=ResponseStatus.choices, default=ResponseStatus.PENDING, max_length=20)
+    callback_body = models.JSONField(null=True, blank=True)
+    txn_verified = models.BooleanField(default=False)
     hook_check = models.BooleanField(default=False)
     reqhash = models.CharField( max_length=50, null=True, blank=True)
     contribute_code= models.CharField( max_length=50, null=True, blank=True)
-    personal_message= models.TextField()
+    personal_message= models.TextField(null=True, blank=True)
+    delete_flag = models.BooleanField(default=False)
     rdate = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f'{self.user.first_name} - {self.amount} on {self.rdate.strftime("%d-%M-%Y %HH:%MM:%SS")}'
+    
+    def save(self, *args, **kwargs):
+        if not self.ref_id:
+            # generate a unique refid with uuid
+            self.ref_id = f'REF-{self.user.id}-{str(uuid.uuid4().hex[:8].upper())}'
+        super().save(*args, **kwargs)
 
 class PaystackHook(models.Model):
     resp = models.TextField()

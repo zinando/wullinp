@@ -96,6 +96,9 @@ function verifyOrder(order_details, onFailure){
 }
 
 function triggerPayment(order){
+    metaData.custom_fields[0].display_name = order.name;
+    metaData.custom_fields[0].mobile_number = order.phone;
+    metaData.custom_fields[0].payment_purpose = order.paymentPurposepurpose;
     // Initialize the payment
     const handler = PaystackPop.setup({
         key: order.paystackPublicKey,

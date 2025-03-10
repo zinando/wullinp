@@ -3,8 +3,13 @@ from django.contrib.auth.models import User
 from user_register.models import Profile
 from products.models import ProductCategory, Products
 from discounts.models import Discount
+from orders.models import Order, OrderItem, PGRequest
 import uuid
 import re
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def check_if_username_is_phone_or_email(username):
     if '@' in username:
@@ -43,8 +48,8 @@ def check_if_category_has_products(category_id, min_products=1):
     category = ProductCategory.objects.get(id=category_id)
     return category.products.count() >= min_products
 
-# def generate_skux():
-#     return str(uuid.uuid4().hex[:10]).upper()
+def generate_skux():
+    return str(uuid.uuid4().hex[:10]).upper()
 
 def calculate_shipping_cost(cart_items, user_address, delivery_method, delivery_type):
     # Define surcharges to match JS function
@@ -122,6 +127,77 @@ def verify_order(request, order_details):
         total_discount = calculate_total_discount(request.user.cart_items, fetched_discount)
         if order_details['discount'] != total_discount:
             return {'status':0, 'order': order_details, 'message':'Discount value is incorrect', 'error':[]}
+    # Confirm total price
+    total_price = sum(item.product.cprice * item.quantity for item in request.user.cart_items) + order_details['shippingCost'] - order_details['discount']
+    if order_details['totalPrice'] != total_price:
+        return {'status':0, 'order': order_details, 'message':'Total price is incorrect', 'error':[]}
 
     return {'status':1, 'order': order_details, 'message':'Order verified successfully', 'error':[]}
 
+def prepare_order(request, order_details):
+    """This function prepares an order for processing"""
+    # Verify the order
+    verification_result = verify_order(request, order_details)
+    if verification_result['status'] == 0:
+        return verification_result
+
+    # Create the order
+    order = Order.objects.create(
+        user=request.user,
+        delivery_address=order_details['selectedDeliveryAddress']['house_address'],
+        delivery_method=order_details['deliveryMethod'],
+        delivery_type=order_details['deliveryType'],
+        shipping_cost=order_details['shippingCost'],
+        discount=order_details['discount'],
+        total=order_details['total'],
+        sub_total=order_details['subTotal'],
+        discount_code=order_details['discountData']['code'],
+        delivery_city=order_details['selectedDeliveryAddress']['city'],
+        delivery_state=order_details['selectedDeliveryAddress']['state'],
+        delivery_country=order_details['selectedDeliveryAddress']['country'],
+        payment_method= 'PAYSTACK' if order_details['paymentMethod'] == 'other' else 'WALLET',
+    )
+
+    # Add cart items to the order
+    for item in request.user.cart_items:
+        OrderItem.objects.create(
+            order=order,
+            product=item.product,
+            quantity=item.quantity,
+            current_price=item.product.cprice,
+            total_price=item.product.cprice * item.quantity,
+            color=item.color,
+            size=item.size,
+            gender = item.gender,
+            customer_approved = True,
+            system_approved = True,
+            customer_approved_date = item.created_at,
+            system_approved_date = item.created_at
+        )
+
+    # Create a payment gateway request
+    txn = PGRequest.objects.create(
+        order=order,
+        user=request.user,
+        amount=order.total,
+        customer_email=request.user.email,
+    )
+
+    # update order txn_ref with the txn referenceid
+    order.txn_ref = txn.ref_id
+    order.save()
+
+    # Clear the user's cart
+    #request.user.cart_items.clear()
+
+    order_data = {
+        'amount': order.total,
+        'email': request.user.email,
+        'reference': txn.ref_id,
+        'name': request.user.first_name + ' ' + request.user.last_name,
+        'phone': request.user.profile.phone,
+        'paystackPublicKey': os.getenv('PAYSTACK_PUBLIC_KEY'),
+        'paymentPurpose': 'Order Payment',
+    }
+
+    return {'status':1, 'order': order_data, 'message':'Order processed successfully', 'error':[]}
