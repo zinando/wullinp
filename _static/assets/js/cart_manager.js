@@ -117,7 +117,6 @@ function CartManager(storage, user) {
   this.updateCartUI = async function () {
     var cart = this.getCart();
     var cartTotal = this.getCartTotal();
-    console.log(`cart: ${cart}`);
     var discount = this.discountManager.getTotalDiscount(cart);
     var shippingCost = await this.getShippingCost();
     var discountedTotal = await this.getDiscountedTotal();

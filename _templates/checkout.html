@@ -16,6 +16,7 @@
           <div class="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 text-sm">3</div>
           <div class="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 text-sm">4</div>
           <div class="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 text-sm">5</div>
+          <div class="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 text-sm">6</div>
         </div>
       </div>
     </div>
@@ -129,10 +130,25 @@
         </div>
       </div>
 
-      <!-- Proceed to Payment -->
-      <div id="step-5" class="bg-white shadow-md p-6 mb-6 hidden">
+      <!-- payment method: wallet or bank transfer -->
+    <div id="step-5" class="bg-white shadow-md p-6 mb-6 hidden">
+      <h2 class="text-xl font-semibold mb-4">Payment Method</h2>
+      <div class="mb-4">
+        <label class="block mb-2">Payment Method:</label>
+        <select id="payment-method" class="w-full p-2 border rounded">
+          <option value="other">Other</option>
+          <option value="wallet">Wallet</option>
+        </select>
+      </div>
+      <div class="flex justify-between mt-6">
+        <button id="back-button-5" class="px-4 py-2 bg-gray-300 text-gray-700 rounded" onclick="prevStep()">Back</button>
+        <button id="next-button-5" class="px-4 py-2 bg-pink-500 text-white rounded" onclick="nextStep(6)">Next</button>
+      </div>
+    </div>
+
+      <!-- Summary -->
+      <div id="step-6" class="bg-white shadow-md p-6 mb-6 hidden">
         <h2 class="text-xl font-semibold mb-4">Summary</h2>
-        <!-- display the cart items, their attributes, and all the selected options without the option to change anything -->
         <div id="cart-items">
           {% for item in cart_items %}
           <div class="flex items-center space-x-4 mb-4">
@@ -171,10 +187,16 @@
             <p id="discount-code-summary" class="text-sm text-gray-500"></p>
           </div>
         </div>
+        <div class="flex items-center space-x-4 mb-4">
+          <div class="flex-1">
+            <h3 class="font-semibold">Payment Method</h3>
+            <p id="payment-method-summary" class="text-sm text-gray-500"></p>
+          </div>
+        </div>
          
         <div class="flex justify-between mt-6">
-          <button id="back-button-5" class="px-4 py-2 bg-gray-300 text-gray-700 rounded" onclick="prevStep()">Back</button>
-          <button id="proceed-to-payment" class="px-4 py-2 bg-pink-500 text-white rounded">Proceed to Payment</button>
+          <button id="back-button-6" class="px-4 py-2 bg-gray-300 text-gray-700 rounded" onclick="prevStep()">Back</button>
+          <button id="proceed-to-payment" onclick="getOrderDetails()" class="px-4 py-2 bg-pink-500 text-white rounded">Proceed to Payment</button>
         </div>
       </div>
     </div>
@@ -249,6 +271,10 @@
   let selctedDeliveryAddress = {};
   let currentStep = 1;
   let appliedDiscount = {};
+  let selectedPaymentMethod = "other";
+  let _total = 0;
+  let _shippingCost = 0;
+  let _discount = 0;
 
   // Create a listener for when a delivery address is selected
   document.querySelectorAll("input[name=address]").forEach((input) => {
@@ -352,7 +378,9 @@
       if (appliedDiscount.code) {
         applyDiscountCode(appliedDiscount);
       }
-    }else if (step === 5) {
+    
+    }else if (step === 6) {
+      selectedPaymentMethod = document.getElementById("payment-method").value;
       populateSummary();
     } else {
       backButton.disabled = false;
@@ -388,6 +416,8 @@
     document.getElementById("delivery-type-summary").textContent = deliveryType === "regular" ? "Regular Delivery" : "Express Delivery";
     // populate discount code
     document.getElementById("discount-code-summary").textContent = appliedDiscount.code ? appliedDiscount.code : "None";
+    // populate payment method
+    document.getElementById("payment-method-summary").textContent = selectedPaymentMethod === "wallet" ? "Wallet" : "Other";
   }
 
   // Function to move to the previous step
@@ -631,6 +661,10 @@
         document.getElementById("total").textContent = `₦${subTotal.toLocaleString()}`;
         document.getElementById("discount").textContent = `₦${discount.toLocaleString()}`;
       }
+
+      _total = discountedTotal;
+      _shippingCost = shippingCost;
+      _discount = discount;
     }
   
   // Function to apply discount code
@@ -647,9 +681,47 @@
   }
   
   $(document).ready(function () {
-    //create a function that updates order summary
-    
     updateOrderSummary();
   });
+
+  // Function that fires when proceedtopayment button is clicked
+  async function getOrderDetails() {
+    triggerProcessing();
+    var orderDetails = {
+      deliveryMethod: deliveryMethod,
+      deliveryType: deliveryType,
+      deliveryAddress: selectedDeliveryAddress,
+      paymentMethod: selectedPaymentMethod,
+      discountData: appliedDiscount,
+      subTotal: await wullinp.cart.getCartTotal(),
+      total: _total,
+      shippingCost: _shippingCost,
+      discount: _discount,
+    };
+    
+    var walletBalance = await wullinp.wallet.getBalance();
+
+    // Check if wallet bbalance is enough to pay for the order
+    if (selectedPaymentMethod === "wallet" && walletBalance < orderDetails.total) {
+      Swal.fire({
+        title: "Insufficient Wallet Balance",
+        text: `Your wallet balance (${walletBalance}) is insufficient to pay for this order. Would you like to pay the remaining balance (${orderDetails.total - walletBalance}) with another payment method?`,
+        icon: "warning",
+        confirmButtonText: "Yes, Proceed",
+        showCancelButton: true,
+        cancelButtonText: "No",
+        backdrop: true,
+        allowOutsideClick:false,
+        allowEscapeKey:false,
+      }).then((value) => {
+        if (!value.isConfirmed) {showToast("Payment cancelled","error"); return;}
+        triggerProcessing();
+        // Proceed to payment
+        verifyOrder(orderDetails, showToast);
+        Swal.close();
+      });
+    }
+    
+  }
 </script>
 {% endblock %}

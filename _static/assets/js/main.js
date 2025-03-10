@@ -99,19 +99,18 @@
     function triggerProcessing(){
 
         Swal.fire({
-          title: 'Processing..',
-          html: 'Confirming your transaction, please be patient',
-          timerProgressBar: true,
-          backdrop: true,
-          allowOutsideClick:false,
-          allowEscapeKey:false,
-          onBeforeOpen: () => {
-            Swal.showLoading()
-           
-          }
+            title: 'Processing..',
+            html: 'Confirming your transaction, please be patient',
+            timerProgressBar: true,
+            backdrop: true,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
         
-          
-        })
     }
 
     // for managing data that should persist across page reloads

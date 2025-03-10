@@ -34,7 +34,7 @@ urlpatterns = [
     path('vendor/', include('vendor_dashboard.url'), name='vendor_dashboard'),
     path('vendor/', include('vendor_login.url'), name='vendor_login'),
     path('products/', ProductView, name='products_view'),
-    path('user/', include('user_profile.url'), name='user_profile'),
+    path('user/', include('user_profile.url')),
     path('user/profile/update/', update_profile, name='update_user_profile'),
     path('vendor/profile/update/', update_vendor_profile, name='update_vendor_profile'),
     path('user/change_password/', change_user_password, name='change_user_password'),

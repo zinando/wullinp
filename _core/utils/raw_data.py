@@ -389,3 +389,5 @@ discounts = [
     }
 
 ]
+
+wallet_balance = 1500

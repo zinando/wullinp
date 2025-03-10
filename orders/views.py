@@ -10,7 +10,7 @@ from user_profile.models import Address
 from user_profile.serializer import AddressSerializer
 from products.models import Products
 from .serializer import CartItemSerializer
-from _core.utils.helpers import calculate_shipping_cost
+from _core.utils.helpers import calculate_shipping_cost, verify_order
 from _core.utils.raw_data import pickup_locations
 
 # Create your views here.
@@ -67,6 +67,8 @@ def checkoutView(request):
         # we will verify: shipping cost, discount, and order total
         # so we need: cart items, delivery address, discount code, delivery method, delivery type
         response = verify_order(request, order_details)
+
+        return Response(response, status=status.HTTP_200_OK)
     
     return render(request, 'checkout.html', {'cart_items': cart_items, 'shipping': shipping, 'discount': discount, 'user_addresses': user_addresses, 'pickup_stations': pickup_locations})
 

@@ -18,11 +18,53 @@ class CartItem(models.Model):
         return f'{self.product.name} - {self.quantity}'
     
 class Order(models.Model):
+    class PaymentStatus(models.TextChoices):
+        PENDING = "PENDING", "Pending"
+        PAID = "PAID", "Paid"
+        FAILED = "FAILED", "Failed"
+
+    class OrderStatus(models.TextChoices):
+        PENDING = "PENDING", "Pending"
+        PROCESSING = "PROCESSING", "Processing"
+        SHIPPED = "SHIPPED", "Shipped"
+        DELIVERED = "DELIVERED", "Delivered"
+        CANCELLED = "CANCELLED", "Cancelled"
+
+    class OrderType(models.TextChoices):
+        CHECKOUT = "CHECKOUT", "Checkout"
+        WISHLIST = "WISHLIST", "Wishlist"
+    class PaymentMethod(models.TextChoices):
+        PAYSTACK = "PAYSTACK", "Paystack"
+        FLUTTERWAVE = "FLUTTERWAVE", "Flutterwave"
+        STRIPE = "STRIPE", "Stripe"
+        RAVE = "RAVE", "Rave"
+        PAYPAL = "PAYPAL", "Paypal"
+        BANK_TRANSFER = "BANK_TRANSFER", "Bank Transfer"
+        CASH_ON_DELIVERY = "CASH_ON_DELIVERY", "Cash on Delivery"
+        WALLET = "WALLET", "Wallet"
+
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    total_price = models.FloatField(default=0)
-    total_discount = models.FloatField(default=0)
-    shipping = models.FloatField(default=0)
-    payment_status = models.TextChoices('PaymentStatus', 'PENDING PAID FAILED')
+    order_number = models.CharField(max_length=50, unique=True)
+    sub_total = models.FloatField(default=0)
+    total = models.FloatField(default=0)
+    discount = models.FloatField(default=0)
+    shipping_cost = models.FloatField(default=0)
+    payment_status = models.CharField(choices=PaymentStatus.choices, default=PaymentStatus.PENDING, max_length=20)
+    discount_code = models.CharField(max_length=50, null=True, blank=True)
+    delivery_address = models.TextField()
+    delivery_city = models.CharField(max_length=50)
+    delivery_state = models.CharField(max_length=50)
+    delivery_country = models.CharField(max_length=50)
+    delivery_method = models.CharField(max_length=50)
+    delivery_type = models.CharField(max_length=50)
+    order_status = models.CharField(choices=OrderStatus.choices, default=OrderStatus.PENDING, max_length=20)
+    txn_ref = models.CharField(max_length=100, null=True, blank=True)
+    order_type = models.CharField(choices=OrderType.choices, default=OrderType.CHECKOUT, max_length=20)
+    redeem_requested = models.BooleanField(default=False)
+    redeem_code = models.CharField(max_length=50, null=True, blank=True)
+    payment_method = models.CharField(choices=PaymentMethod.choices, default=PaymentMethod.PAYSTACK, max_length=20)
+    delivery_date = models.DateField(null=True, blank=True)
+    delete_flag = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -33,9 +75,31 @@ class Order(models.Model):
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey(Products, on_delete=models.CASCADE, related_name='order_items')
+    vendor_approved = models.BooleanField(default=False)
+    vendor_approved_date = models.DateTimeField(null=True, blank=True)
+    system_approved = models.BooleanField(default=False)
+    system_approved_date = models.DateTimeField(null=True, blank=True)
+    customer_approved = models.BooleanField(default=False)
+    customer_approved_date = models.DateTimeField(null=True, blank=True)
+    current_price = models.FloatField(default=0)
     quantity = models.IntegerField(default=1)
+    total_price = models.FloatField(default=0)
+    cash_back = models.FloatField(default=0)
     color = models.CharField(max_length=50, null=True, blank=True)
     size = models.CharField(max_length=50, null=True, blank=True)
+    gender = models.CharField(max_length=50, null=True, blank=True)
+    delete_flag = models.BooleanField(default=False)
+    hold_vendor_payment = models.BooleanField(default=False)
+    vendor_paid_flag = models.BooleanField(default=False)
+    admin_over_ride = models.BooleanField(default=False)
+    admin_overide_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='admin_overide_user', null=True, blank=True)
+    waybillnumber = models.CharField(max_length=50, null=True, blank=True)
+    ship_cost = models.FloatField(default=0)
+    out_of_stock_on_purchase = models.BooleanField(default=False)
+    redeem_requested= models.BooleanField(default=False)
+    vendor_marked_delivered = models.BooleanField(default=False)
+    vendor_marked_delivered_date = models.DateTimeField(null=True, blank=True)
+    vendor_marked_delivered_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='vendor_marked_delivered_user', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

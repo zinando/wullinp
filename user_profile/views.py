@@ -8,6 +8,7 @@ from django.contrib.auth.models import User
 from .models import Address
 from .serializer import AddressSerializer
 from _core.utils.helpers import is_email_exists, is_phone_exists, is_business_name_exists
+from _core.utils.raw_data import wallet_balance
 import requests
 
 # Create your views here.
@@ -188,3 +189,26 @@ def fetch_states_data(request):
     response = requests.get(url)
     data = response.json()
     return Response(data, status=status.HTTP_200_OK)
+
+# endpoint for managing user wallet
+@api_view(['GET', 'POST', 'PUT', 'DELETE'])
+@login_required(login_url='user_login')
+def user_wallet(request):
+    user = request.user
+    if request.method == 'GET':
+        # get the user wallet balance from external api using user id
+        wallet = {'balance': wallet_balance}
+        return Response(wallet, status=status.HTTP_200_OK)
+    if request.method == 'POST':
+        data = request.data
+        amount = data.get('amount')
+        user.profile.wallet_balance += amount
+        user.profile.save()
+        return Response({'wallet_balance': user.profile.wallet_balance}, status=status.HTTP_200_OK)
+    if request.method == 'PUT':
+        data = request.data
+        amount = data.get('amount')
+        user.profile.wallet_balance -= amount
+        user.profile.save()
+        return Response({'wallet_balance': user.profile.wallet_balance}, status=status.HTTP_200_OK)
+    return Response({'message': 'Invalid request.'}, status=status.HTTP_400_BAD_REQUEST)

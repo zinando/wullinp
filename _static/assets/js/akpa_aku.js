@@ -23,4 +23,22 @@ function WalletManager(storage, user) {
       wallet.balance -= amount;
       this.storage.setItem(storageKey, wallet);
     };
-  }
+
+    this.getBalance = async function () {
+        // return this.storage.getItem(storageKey).balance;
+        var response = await fetch('/user/wallet/', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken(),
+            },
+        });
+        if (response.ok) {
+            var data = await response.json();
+            return data.balance;
+        } else {
+            console.error('Error:', response.statusText);
+            return 0;
+        }
+    };
+}

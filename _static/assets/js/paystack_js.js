@@ -86,12 +86,12 @@ function verifyOrder(order_details, onFailure){
             triggerPayment(data.order);
         } else {
             // if order details are invalid, display an error message
-            onFailure(data.message);
+            onFailure(data.message, 'error');
         }
     })
     .catch((error) => {
         console.error('Error:', error);
-        onFailure(`${error}`);
+        onFailure(`${error}`, 'error');
     });
 }
 
