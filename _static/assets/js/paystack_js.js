@@ -3,55 +3,34 @@ const callback = function(response){
     triggerProcessing();
     console.log(response);
     // log payment response to the backend
-    logPayment(response);
+    // logPayment(response);
+    window.location.href = '/checkout/checkout/?action=confirm-payment&txn_ref='+response.reference;
+    
 }   
 
-// function to log payment response to the backend
-function logPayment(response){
-    // make a POST request to the backend to log the payment response
-    fetch('/log-payment', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(response),
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log('Success:', data);
-        // if payment is successful, call verifyPayment() to verify the payment
-        if(response.status === 'success'){
-            verifyPayment(response.reference);
-        }
-    })
-    .catch((error) => {
-        console.error('Error:', error);
-    });
-}
-
-// function to verify payment
-function verifyPayment(reference){
-    // make a POST request to the backend to verify the payment
-    fetch('/verify-payment', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({reference: reference}),
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log('Success:', data);
-        // if payment is successful, display a success message to the user
-        if(data.status === 'success'){
-            // display a success message to the user
-            alert('Payment successful');
-        }
-    })
-    .catch((error) => {
-        console.error('Error:', error);
-    });
-}
+// // function to log payment response to the backend
+// function logPayment(paymentResponse){
+//     // make a POST request to the backend to log the payment response
+//     fetch('/checkout/checkout/?action=log-paystack-response', {
+//         method: 'POST',
+//         headers: {
+//             'Content-Type': 'application/json',
+//         },
+//         body: JSON.stringify(paymentResponse),
+//     })
+//     .then(response => response.json())
+//     .then(data => {
+//         console.log('Success:', data);
+//         // if payment is successful, call verifyPayment() to verify the payment
+//         if(data.status===1 && paymentResponse.status === 'success'){
+            
+//         }
+//     })
+//     .catch((error) => {
+//         console.error('Error:', error);
+//         /// go to error page
+//     });
+// }
 
 // on close callback
 const onClose = function(){
@@ -96,6 +75,13 @@ function verifyOrder(order_details, onFailure){
 }
 
 function triggerPayment(order){
+    if (order.amount === 0) {
+        // payment has been settled with the wallet
+        console.log('Payment settled with the wallet');
+        // return user to success page
+        return;
+    }
+    console.log(order);
     metaData.custom_fields[0].display_name = order.name;
     metaData.custom_fields[0].mobile_number = order.phone;
     metaData.custom_fields[0].payment_purpose = order.paymentPurposepurpose;
@@ -103,7 +89,7 @@ function triggerPayment(order){
     const handler = PaystackPop.setup({
         key: order.paystackPublicKey,
         email: order.email,
-        amount: order.amount,
+        amount: 20000, //`${order.amount * 100}`,
         ref: order.reference,
         metadata: metaData,
         callback: callback,

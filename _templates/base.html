@@ -148,9 +148,6 @@
             }
         });
 
-        // function to navigate to the checkout page
-        // first log cart items  to db
-        //fetch user id
         // navigate to checkout page
         async function checkout() {
             try {
@@ -172,17 +169,6 @@
 
                 // Parse response (if needed)
                 const result = await response.json();
-                console.log("Checkout Response:", result);
-                //return;
-
-                // // Redirect to checkout page with cart details
-                // const shipping = 0;
-                // const discount = JSON.stringify(wullinp.discount.getAppliedDiscounts());
-                // const queryParams = new URLSearchParams({
-                //     cart_items: JSON.stringify(cartItems),
-                //     shipping,
-                //     discount
-                // }).toString();
 
                 window.location.href = `{% url 'checkout' %}`;
             } catch (error) {

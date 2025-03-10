@@ -10,7 +10,7 @@ from user_profile.models import Address
 from user_profile.serializer import AddressSerializer
 from products.models import Products
 from .serializer import CartItemSerializer
-from _core.utils.helpers import calculate_shipping_cost, prepare_order
+from _core.utils.helpers import calculate_shipping_cost, prepare_order, log_paystack_response
 from _core.utils.raw_data import pickup_locations
 
 # Create your views here.
@@ -20,7 +20,17 @@ def checkoutView(request):
     cart_items = []
     shipping = 0
     discount = {}
-    if request.method == 'GET':
+    if request.method == 'GET' and request.GET.get('action') == 'confirm-payment':
+        txn_ref = request.GET.get('txn_ref', None)
+        if txn_ref is None:
+            return render(request, 'payment_confirmation.html', {'status': False, 'message': 'No transaction reference provided', 'error': ['Payment not confirmed']})
+        # log the order
+        response = log_paystack_response(txn_ref)
+        if response['status'] > 0:
+            return render(request, 'payment_confirmation.html', response['response'])
+        
+        return render(request, 'payment_confirmation.html', {'status': False, 'message': response['message'], 'error': ['Payment not confirmed']})
+    elif request.method == 'GET':
         #get the cart items
         cart_items = CartItem.objects.filter(user=request.user)
         cart_items_serializer = CartItemSerializer(cart_items, many=True)

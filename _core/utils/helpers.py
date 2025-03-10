@@ -3,11 +3,15 @@ from django.contrib.auth.models import User
 from user_register.models import Profile
 from products.models import ProductCategory, Products
 from discounts.models import Discount
-from orders.models import Order, OrderItem, PGRequest
+from orders.models import Order, OrderItem, PGRequest, PaystackHook
 import uuid
 import re
 import os
+from decimal import Decimal
 from dotenv import load_dotenv
+from .raw_data import wallet_balance
+import requests
+
 
 load_dotenv()
 
@@ -91,7 +95,7 @@ def calculate_total_discount(cart_items, discount):
         return 0
 
     # Check if minimum purchase amount is met
-    total_price = sum(item.product.price * item.quantity for item in cart_items)
+    total_price = sum((item.product.cprice) * item.quantity for item in cart_items)
     if discount.minPurchase > total_price:
         return 0
 
@@ -99,7 +103,7 @@ def calculate_total_discount(cart_items, discount):
     for item in cart_items:
         if not discount.applicableProducts or item.product.id in discount.applicableProducts:
             if discount.type == "percentage":
-                total_discount += (item.product.price * item.quantity * discount.value) / 100
+                total_discount += (item.product.cprice * item.quantity * Decimal(discount.value)) / 100
             elif discount.type == "fixed":
                 total_discount += discount.value * item.quantity
 
@@ -113,23 +117,22 @@ def verify_order(request, order_details):
     if not order_details:
         return {'status':0, 'order': order_details, 'message':'Order is empty', 'error':[]}
     # Confirm shipping cost
-    shipping_cost = calculate_shipping_cost(request.user.cart_items, order_details['selectedDeliveryAddress'], order_details['deliveryMethod'], order_details['deliveryType'])
-    print(shipping_cost)
+    shipping_cost = calculate_shipping_cost(request.user.cart_items.all(), order_details['deliveryAddress'], order_details['deliveryMethod'], order_details['deliveryType'])
     if order_details['shippingCost'] != shipping_cost:
         return {'status':0, 'order': order_details, 'message':'Shipping cost is incorrect', 'error':[]}
     # Confirm discount
-    if order_details['discountData']['code']:
+    if order_details['discountData'].keys() and order_details['discountData']['code']:
         try:
             fetched_discount = Discount.objects.get(code=order_details['discountData']['code'])
         except Discount.DoesNotExist:
             return {'status':0, 'order': order_details, 'message':'Discount code is invalid', 'error':[]}
         
-        total_discount = calculate_total_discount(request.user.cart_items, fetched_discount)
+        total_discount = calculate_total_discount(request.user.cart_items.all(), fetched_discount)
         if order_details['discount'] != total_discount:
             return {'status':0, 'order': order_details, 'message':'Discount value is incorrect', 'error':[]}
     # Confirm total price
-    total_price = sum(item.product.cprice * item.quantity for item in request.user.cart_items) + order_details['shippingCost'] - order_details['discount']
-    if order_details['totalPrice'] != total_price:
+    total_price = sum(item.product.cprice * item.quantity for item in request.user.cart_items.all()) + order_details['shippingCost'] - order_details['discount']
+    if order_details['total'] != total_price:
         return {'status':0, 'order': order_details, 'message':'Total price is incorrect', 'error':[]}
 
     return {'status':1, 'order': order_details, 'message':'Order verified successfully', 'error':[]}
@@ -144,22 +147,22 @@ def prepare_order(request, order_details):
     # Create the order
     order = Order.objects.create(
         user=request.user,
-        delivery_address=order_details['selectedDeliveryAddress']['house_address'],
+        delivery_address=order_details['deliveryAddress']['house_address'],
         delivery_method=order_details['deliveryMethod'],
         delivery_type=order_details['deliveryType'],
         shipping_cost=order_details['shippingCost'],
         discount=order_details['discount'],
         total=order_details['total'],
         sub_total=order_details['subTotal'],
-        discount_code=order_details['discountData']['code'],
-        delivery_city=order_details['selectedDeliveryAddress']['city'],
-        delivery_state=order_details['selectedDeliveryAddress']['state'],
-        delivery_country=order_details['selectedDeliveryAddress']['country'],
+        discount_code=order_details['discountData']['code'] if order_details['discountData'].keys() else None,
+        delivery_city=order_details['deliveryAddress']['city'],
+        delivery_state=order_details['deliveryAddress']['state'],
+        delivery_country=order_details['deliveryAddress']['country'],
         payment_method= 'PAYSTACK' if order_details['paymentMethod'] == 'other' else 'WALLET',
     )
 
     # Add cart items to the order
-    for item in request.user.cart_items:
+    for item in request.user.cart_items.all():
         OrderItem.objects.create(
             order=order,
             product=item.product,
@@ -200,4 +203,80 @@ def prepare_order(request, order_details):
         'paymentPurpose': 'Order Payment',
     }
 
+    # if the payment method is wallet, process the order with the wallet
+    if order.payment_method == 'WALLET':
+        order_data = pay_with_wallet(order_data)
+
     return {'status':1, 'order': order_data, 'message':'Order processed successfully', 'error':[]}
+
+def pay_with_wallet(order):
+    """This function processes an order payment with the user's wallet"""
+    # Check if the user has enough funds
+    if wallet_balance < order['amount']:
+        order['amount'] -= wallet_balance
+        # clear wallet balance
+    else:
+        # subtract the order amount from the user's wallet balance
+        order['amount'] = 0
+        # perform other payment operations here
+
+    return order
+
+def log_paystack_response(txn_ref):
+    """This function logs a Paystack response"""
+    
+    user_id = txn_ref.split('-')[1]
+    user = User.objects.get(id=user_id)
+    # check if user is authenticated
+    if not user.is_authenticated:
+        return {'status':0, 'message':'User is not authenticated', 'error':[], 'response':{}}
+    
+    # verify the payment
+    verification = verify_paystack_payment(txn_ref)
+    if not verification['status']:
+        return {'status': 2, 'message':'Payment verification failed', 'error':[], 'response': verification}
+    
+    # update the PGRequest object
+    txn = PGRequest.objects.get(ref_id=txn_ref)
+    txn.res_status = verification['data']['status'].upper()
+    txn.callback_body = verification['data']
+    txn.txn_verified = verification['status']
+    txn.save()
+
+    return {'status':1, 'response': verification, 'message':'Transaction logged successfully', 'error':[]}
+
+# create a hook
+def create_paystack_hook(response):
+    """This function creates a Paystack hook"""
+    hook = PaystackHook.objects.create(
+        resp = str(response),
+        #hook_res_id = models.CharField(max_length=50, null=True, blank=True)
+        transactionid = response['trans'],
+    )
+
+    return hook
+
+# verify the payment on paystack server
+def verify_paystack_payment(txn_reference):
+    url = f"https://api.paystack.co/transaction/verify/{txn_reference}"
+    
+    headers = {
+        "Authorization": f"Bearer {os.getenv('PAYSTACK_SECRETE_KEY')}",
+        "Content-Type": "application/json"
+    }
+
+    response = requests.get(url, headers=headers)
+
+    data = {
+                "status": False,
+                "message": "Verification failed",
+                "data": {}
+            }
+
+    if response.status_code == 200:
+        data = response.json()
+        if data['status']:
+            data['data']['amount'] = data['data']['amount'] / 100
+    else:
+        data['message'] = response.text
+    return data

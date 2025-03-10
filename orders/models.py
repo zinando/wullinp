@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from products.models import Products
 import uuid
+import datetime
 
 # Create your models here.
 #create cart model
@@ -74,7 +75,7 @@ class Order(models.Model):
     
     def save(self, *args, **kwargs):
         if not self.order_number:
-            self.order_number = f'ORD-{str(self.user.id)}-{str(self.created_at.strftime("%Y%m%d%H%M%S"))}'
+            self.order_number = f'ORD-{str(self.user.id)}-{str(datetime.datetime.now().strftime("%Y%m%d%H%M%S"))}'
         super().save(*args, **kwargs)
 
 # create order item model

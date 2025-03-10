@@ -355,7 +355,7 @@
 
     // Update progress bar
     const progressBar = document.getElementById("progress-bar");
-    progressBar.style.width = `${((step - 1) / 4) * 100}%`;
+    progressBar.style.width = `${((step - 1) / 5) * 100}%`;
 
     // Update progress nodes
     const nodes = document.querySelectorAll(".w-6.h-6");
@@ -718,9 +718,13 @@
         triggerProcessing();
         // Proceed to payment
         verifyOrder(orderDetails, showToast);
-        Swal.close();
+       
       });
+    } else{
+      // Proceed to payment
+      verifyOrder(orderDetails, showToast);
     }
+    //Swal.close();
     
   }
 </script>
