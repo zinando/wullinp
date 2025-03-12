@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from user_profile.serializer import AddressSerializer
 from orders.serializer import CartItemSerializer
 from user_register.models import Profile 
+from wishlist.serializer import MySavedProductSerializer
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -36,13 +37,14 @@ class ProfileSerializer(serializers.ModelSerializer):
         return instance
 
 class UserSerializer(serializers.ModelSerializer):
+    wishlist = MySavedProductSerializer(many=True, read_only=True)
     profile = ProfileSerializer()
     addresses = AddressSerializer(many=True, read_only=True)
     cart_items = CartItemSerializer(many=True, read_only=True)
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'profile', 'first_name', 'last_name', 'is_staff', 'is_active', 
-                  'date_joined', 'last_login', 'groups', 'user_permissions', 'addresses', 'cart_items']
+                  'date_joined', 'last_login', 'groups', 'user_permissions', 'addresses', 'cart_items', 'wishlist']
         
     def update(self, instance, validated_data):
         print('user update method calle')
