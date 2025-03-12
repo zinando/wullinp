@@ -208,7 +208,7 @@
     // const cart = new Cart();
 
     // Function to open the product attributes modal
-    function openProductAttributesModal(productId, productName, stockCount, weight, width, height, length, sizes, colors, price) {
+    function openProductAttributesModal(productId, productName, stockCount, weight, width, height, length, sizes, colors, price, type='cart') {
         // Store product ID
         $("#confirmAddToCart").data("id", productId);
         $("#confirmAddToCart").data("name", productName);
@@ -217,6 +217,7 @@
         $("#confirmAddToCart").data("width", width);
         $("#confirmAddToCart").data("height", height);
         $("#confirmAddToCart").data("length", length);
+        $("#confirmAddToCart").data("type", type);
     
         // Set Modal Title
         $("#modalTitle").text(`Select Options for ${productName}`);
@@ -276,8 +277,36 @@
             openProductAttributesModal(productId, productName, stockCount, weight, width, height, length, sizes, colors, price);
         });
 
+        // Function to trigger the product attributes modal for wishlist items
+        $(document).on("click", ".addToWishList", function (e) {
+            e.preventDefault();
+            console.log(wullinp.user.isAuthenticated); 
+            if (!wullinp.user.isAuthenticated) {
+                showToast("Please login to add items to cart", "error");
+                return;
+            }
+
+            let productId = $(this).data("id");
+            let productName = $(this).data("name");
+            let price = parseFloat($(this).data("price"));
+            let stockCount = parseInt($(this).data("stock"));
+            let weight = parseFloat($(this).data("weight"));
+            let width = parseFloat($(this).data("width"));
+            let height = parseFloat($(this).data("height"));
+            let length = parseFloat($(this).data("length"));
+            let sizes = "[24, 26, 28, 30, 32]"; //$(this).data("sizes"); // Expected to be an array
+            let colors = '["red", "blue", "green", "black", "silver"]'; //$(this).data("colors"); // Expected to be an array
+
+            // if sizes and colors are strings, convert them to arrays
+            sizes = JSON.parse(sizes || "[]");
+            colors = JSON.parse(colors || "[]");
+
+            openProductAttributesModal(productId, productName, stockCount, weight, width, height, length, sizes, colors, price, 'wishlist');
+        });
+
         // Function to collect product attributes and add to cart
         $(document).on("click", "#confirmAddToCart", function () {
+            let cart = $(this).data("type") === "cart";
             let productId = $(this).data("id");
             let productName = $(this).data("name");
             let weight = parseFloat($(this).data("weight"));
@@ -297,12 +326,39 @@
             let attributes = { quantity };
             if (size) attributes.size = size;
             if (color) attributes.color = color;
-        
-            //cart.addToCart(productId, productName, attributes);
-            wullinp.cart.addItem({ productId, productName, price, weight, width, height, length, ...attributes });
+            
+            let item = { productId, productName, price, weight, width, height, length, ...attributes };
+            // Add item to cart or wishlist
             closeProductAttributesModal();
-            showToast(`${productName} added to cart`, "success");
+            if(cart){
+                wullinp.cart.addItem(item);
+                showToast(`${productName} added to cart`, "success");
+            } else {
+                addToWishlist(item);
+            }
         });
+
+        // Function to send wishlist item to backend
+        function addToWishlist(item) {
+            $.ajax({
+                url: "/user/wishlist/api/",
+                type: "POST",
+                headers: { "X-CSRFToken": getCSRFToken(), "Content-Type": "application/json" },
+                data: JSON.stringify(item),
+                success: function (response) {
+                    if (response.status === 1) {
+                        document.getElementById("wishlist-count").textContent = response.count;
+                        showToast(response.message, "success");
+                    } else {
+                        showToast(response.message, "error");
+                    }   
+                
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    showToast(`Error: ${errorThrown}`, "error");    
+                },
+            });
+        }
     });
 
     // fetch states data from API

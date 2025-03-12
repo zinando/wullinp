@@ -1,99 +1,243 @@
 {% extends 'base.html' %}
 
-{% block title %}My Wishlist - WULLINP{% endblock %}
+{% block extra_css %}
+<!-- Add any custom styles or scripts here if needed -->
+<style>
+    .progress-bar {
+        transition: width 0.5s ease-in-out;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container mx-auto p-4">
-    
-    <!-- Share Wishlist Section -->
-    <div class="bg-white p-4 rounded-lg shadow-md mb-6">
-        <h2 class="text-xl font-semibold text-gray-800">Share Your Wishlist</h2>
-        <div class="flex gap-3 mt-2">
-            <a href="#" class="bg-blue-500 text-white px-3 py-2 rounded-md text-sm flex items-center">
-                <i class="fab fa-facebook-f mr-2"></i> Facebook
-            </a>
-            <a href="#" class="bg-blue-400 text-white px-3 py-2 rounded-md text-sm flex items-center">
-                <i class="fab fa-twitter mr-2"></i> Twitter
-            </a>
-            <a href="#" class="bg-green-500 text-white px-3 py-2 rounded-md text-sm flex items-center">
-                <i class="fab fa-whatsapp mr-2"></i> WhatsApp
-            </a>
-            <button onclick="copyToClipboard()" class="bg-gray-600 text-white px-3 py-2 rounded-md text-sm flex items-center">
-                <i class="fas fa-copy mr-2"></i> Copy Link
-            </button>
+<!-- Page Content -->
+<div class="container mx-auto px-4 py-8">
+    <div class="bg-white shadow-md rounded-lg p-6">
+        <!-- Wishlist Header -->
+        <div class="mb-8">
+            <h3 class="text-2xl font-bold">{{ owner }}'s Wish List</h3>
+            <hr class="my-4 border-gray-300">
         </div>
-    </div>
 
-    <!-- Wishlist Grid -->
-    {% if wishlist_items %}
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-            {% for item in wishlist_items %}
-            <div class="bg-white p-4 rounded-lg shadow-md">
-                <!-- Thumbnail -->
-                <img src="{{ item.thumbnail_url }}" alt="{{ item.name }}" class="w-full h-32 object-cover rounded-md">
-
-                <!-- Product Details -->
-                <h3 class="text-lg font-semibold mt-2">{{ item.name }}</h3>
-                <p class="text-gray-600">₦{{ item.price }}</p>
-
-                <!-- Progress Bar -->
-                <div class="relative mt-2">
-                    <div class="h-2 bg-gray-300 rounded-full">
-                        <div class="h-2 bg-green-500 rounded-full" style="width: {{ item.progress }}%;"></div>
-                    </div>
-                    <p class="text-sm text-gray-500 mt-1">{{ item.progress }}% funded</p>
-                </div>
-
-                <!-- Buttons -->
-                <div class="mt-3 flex flex-wrap gap-2">
-                    {% if request.user == item.owner %}
-                        <button class="w-full text-white py-1 rounded-md text-sm 
-                            {% if item.progress == 100 %}bg-green-500 hover:bg-green-600{% else %}bg-gray-400 cursor-not-allowed{% endif %}">
-                            Redeem
-                        </button>
-                    {% else %}
-                        <button class="w-full text-white py-1 rounded-md text-sm 
-                            {% if item.progress < 100 %}bg-blue-500 hover:bg-blue-600{% else %}bg-gray-400 cursor-not-allowed{% endif %}">
-                            Contribute
-                        </button>
-                    {% endif %}
-                    
-                    <button class="w-full bg-purple-500 text-white py-1 rounded-md text-sm hover:bg-purple-600">
-                        View Contributors
-                    </button>
-
-                    <button class="bg-red-500 text-white px-3 py-1 rounded-full text-xs">
-                        <i class="fas fa-trash"></i>
-                    </button>
-
-                    <button class="bg-gray-500 text-white px-3 py-1 rounded-full text-xs">
-                        <i class="fas fa-eye{% if item.is_visible %}-slash{% endif %}"></i>
+        <!-- Share Section -->
+        <div class="flex flex-wrap items-center gap-4 mb-8">
+            <div class="text-lg font-semibold">Share</div>
+            <div class="flex-grow">
+                <div class="flex items-center">
+                    <input type="text" id="showpaylink" value="{{ request_url }}" readonly
+                        class="flex-grow p-2 border border-gray-300 rounded-l-lg focus:outline-none">
+                    <button onclick="inputcopy()"
+                        class="bg-blue-500 text-white px-4 py-2 rounded-r-lg hover:bg-blue-600">
+                        <i class="fas fa-copy"></i> Copy
                     </button>
                 </div>
             </div>
-            {% endfor %}
+            <div class="flex items-center gap-2">
+                <!-- AddToAny Share Buttons -->
+                <div class="a2a_kit a2a_kit_size_32 a2a_default_style">
+                    <a class="a2a_button_facebook"></a>
+                    <a class="a2a_button_twitter"></a>
+                    <a class="a2a_button_linkedin"></a>
+                    <a class="a2a_button_whatsapp"></a>
+                    <a class="a2a_button_telegram"></a>
+                    <a class="a2a_button_email"></a>
+                </div>
+            </div>
         </div>
-    {% else %}
-    <!-- No Wishlist Items Message -->
-        <div class="text-center py-12">
-            <img src="https://via.placeholder.com/150?text=No+Items" class="mx-auto mb-4" alt="No Wishlist Items">
-            <h3 class="text-lg font-semibold text-gray-800">Your wishlist is empty</h3>
-            <p class="text-gray-600">Start adding items to your wishlist and share with your friends.</p>
-            <a href="{% url 'home' %}" class="mt-4 inline-block bg-pink-500 text-white px-4 py-2 rounded-md hover:bg-pink-600">
-                Add Wishlist Item
-            </a>
+
+        <hr class="my-4 border-gray-300">
+
+        <!-- Products Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% if wishlist %}
+                {% for saved_product in wishlist %}
+                    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+                        <!-- Product Image -->
+                        <div class="relative">
+                            <img src="{{ saved_product.product.image_1_cloud_url }}" alt="{{ saved_product.product.name }}"
+                                class="w-full h-48 object-cover">
+                            <div class="absolute top-2 right-2">
+                                <button class="text-red-500 hover:text-red-700">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Product Details -->
+                        <div class="p-4">
+                            <h6 class="text-lg font-semibold">{{ saved_product.product.name|truncatechars:35 }}</h6>
+                            <p class="text-gray-600">
+                                <!-- add naira sign here -->
+                                &#8358;
+                                {{ saved_product.product.cprice|floatformat:2 }}
+                            </p>
+
+                            <!-- Progress Bar -->
+                            <div class="mt-4">
+                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                    <div class="bg-blue-500 h-2.5 rounded-full"
+                                        style="width: {{ saved_product.contribution_percentage }}%;">
+                                    </div>
+                                </div>
+                                <div class="flex justify-between text-sm mt-1">
+                                    <span>Contributed: &#8358;({{ saved_product.contributed_amount|floatformat:2 }})</span>
+                                    <span>{{ saved_product.contribution_percentage }}%</span>
+                                </div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="mt-4 space-y-2">
+                                {% if not saved_product.is_fully_paid %}
+                                    <button onclick="popit('{{ saved_product.id }}', '{{ saved_product.remaining_amount }}')"
+                                        class="w-full bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+                                        <i class="fas fa-heart"></i> Contribute
+                                    </button>
+                                {% else %}
+                                    {% if request.user == user %}
+                                        {% if not saved_product.requested_delivery %}
+                                            <button onclick="RedeemWish('{{ saved_product.id }}')"
+                                                class="w-full bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">
+                                                <i class="fas fa-gift"></i> Request Delivery
+                                            </button>
+                                        {% else %}
+                                            <p class="text-center text-gray-600">Delivery Requested. Code: <strong>{{ saved_product.get_redeem_code }}</strong></p>
+                                        {% endif %}
+                                    {% endif %}
+                                {% endif %}
+
+                                {% if saved_product.contribution_percentage == 0 and saved_product.user_id == user.id %}
+                                    <button onclick="removeWishListItem('{{ saved_product.product.id }}')"
+                                        class="w-full bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-span-3 text-center text-gray-600">No items in your wishlist.</div>
+            {% endif %}
         </div>
-    {% endif %}
+    </div>
 </div>
 
-<!-- Copy to Clipboard Script -->
-<script>
-function copyToClipboard() {
-    const link = "{{ request.build_absolute_uri }}";
-    navigator.clipboard.writeText(link).then(() => {
-        Swal.fire("Copied!", "Wishlist link copied to clipboard.", "success");
-    });
-}
-</script>
+<!-- Quick View Modal -->
+<div id="quickViewModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg p-6 w-11/12 max-w-4xl">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold">Quick View</h3>
+            <button onclick="closeQuickView()" class="text-gray-600 hover:text-gray-900">&times;</button>
+        </div>
+        <iframe id="quickViewIframe" class="w-full h-96 border-none"></iframe>
+    </div>
+</div>
 
+<!-- extre js -->
+<script>
+    function inputcopy() {
+        const input = document.getElementById('showpaylink');
+        input.select();
+        document.execCommand('copy');
+        Swal.fire({
+            icon: 'success',
+            title: 'Link copied!',
+            showConfirmButton: false,
+            timer: 1500
+        });
+    }
+
+    async function popit(wishId, unpaidAmount) {
+    // Convert unpaidAmount to float
+    const unpaid = parseFloat(unpaidAmount);
+    if (isNaN(unpaid)) {
+        Swal.fire('Error', 'Invalid unpaid amount.', 'error');
+        return;
+    }
+
+    // Collect and validate user data
+    const { value: formValues } = await Swal.fire({
+        title: 'Contribute to Wish',
+        html:
+            `<input id="amount" class="swal2-input" placeholder="Amount (min: 100)" type="number" min="100" max="${unpaid}">` +
+            `<input id="name" class="swal2-input" placeholder="Full Name">` +
+            `<input id="email" class="swal2-input" placeholder="Email Address">` +
+            `<input id="phone" class="swal2-input" placeholder="Phone Number">`,
+        focusConfirm: false,
+        preConfirm: () => {
+            const amount = parseFloat(document.getElementById('amount').value);
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+
+            // Validate inputs
+            if (isNaN(amount)) {
+                Swal.showValidationMessage('Amount must be a number.');
+                return false;
+            }
+            if (amount < 100 || amount > unpaid) {
+                Swal.showValidationMessage(`Amount must be between 100 and ${unpaid}.`);
+                return false;
+            }
+            if (!name) {
+                Swal.showValidationMessage('Name is required.');
+                return false;
+            }
+            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                Swal.showValidationMessage('Valid email is required.');
+                return false;
+            }
+            if (!phone || !/^\d{10,15}$/.test(phone)) {
+                Swal.showValidationMessage('Valid phone number is required (10-15 digits).');
+                return false;
+            }
+
+            return { amount, name, email, phone };
+        }
+    });
+
+    if (formValues) {
+        // Create an object to store collected data
+        const userData = {
+            wishId: wishId,
+            amount: formValues.amount,
+            name: formValues.name,
+            email: formValues.email,
+            phone: formValues.phone
+        };
+
+        // Pass the data to the payment processing function
+        console.log(userData);
+    }
+}
+
+    function RedeemWish(wishId) {
+        Swal.fire({
+            title: 'Request Delivery',
+            text: 'Please confirm your delivery details.',
+            showCancelButton: true,
+            confirmButtonText: 'Confirm',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Handle delivery request logic here
+                console.log(`Requesting delivery for wish ${wishId}`);
+            }
+        });
+    }
+
+    function removeWishListItem(productId) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: 'This will remove the item from your wishlist.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, remove it!',
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Handle removal logic here
+                console.log(`Removing product ${productId} from wishlist`);
+            }
+        });
+    }
+</script>
 {% endblock %}

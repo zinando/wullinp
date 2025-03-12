@@ -101,3 +101,30 @@ function triggerPayment(order){
     handler.openIframe();
 }
 
+// Function to donate to wishlist item
+function donateToWishlistItem(userData){
+    if (!userData.name || !userData.email || !userData.phone || isNaN(userData.amount)) {
+        Swal.fire('Error', 'Invalid data provided.', 'error');
+        return;
+    }
+
+    // Register the user in the database
+    fetch('/user/wishlist/api/', {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken(),
+        },
+        body: JSON.stringify(userData),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.status === 1){
+            // if user is registered, trigger payment
+            triggerPayment(data.order);
+        } else {
+            // if user is not registered, display an error message
+            Swal.fire('Error', `${data.message}`, 'error');
+        }
+    })
+}

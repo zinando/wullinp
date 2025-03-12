@@ -5,6 +5,7 @@ function UserInfo() {
     this.userId = null; // Set if user is logged in
     this.deviceIp = null; // Set if user is a guest
     this.isAuthenticated = user ? true : false;
+    this.wishlist = user ? user.wishlist : [];
     this.cartItems = user
     ? user.cart_items.map((item) => ({
         productId: item.product.id,

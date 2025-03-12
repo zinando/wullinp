@@ -10,6 +10,7 @@ function WishlistManager(storage, user) {
       if (!this.storage.getItem(storageKey)) {
         this.storage.setItem(storageKey, []);
       }
+      this.updateWishlistCount();
     };
   
     this.addToWishlist = function (item) {
@@ -24,4 +25,9 @@ function WishlistManager(storage, user) {
         .filter((i) => i.productId !== productId);
       this.storage.setItem(storageKey, wishlist);
     };
+
+    this.updateWishlistCount = function () {
+      
+      document.getElementById("wishlist-count").innerHTML = this.user.wishlist.length;
+    }
   }

@@ -29,39 +29,50 @@
     <!-- Global Variables -->
     <script>
         const user = JSON.parse('{{ json_user | escapejs }}');
+        
     </script>
     
-    <!-- Navigation Bar -->
     <nav class="bg-white shadow-md p-4 fixed top-0 left-0 w-full z-50 mb-2">
         <div class="container mx-auto flex justify-between items-center">
-            <a href="{% url 'home' %}" class="text-xl font-semibold text-pink-500">{{SITE_NAME_FULL}}</a>
-            <div>
-                {% if user.profile.user_type == 'vendor' %}
-                    {% if user.is_authenticated %}
-                    <a href="{% url 'vendor_dashboard' %}" class="text-gray-700 px-4">Dashboard</a>
-                    <a href="{% url 'user_profile' %}" class="text-gray-700 px-4">Profile</a>
-                    <a href="{% url 'user_logout' %}" class="text-gray-700 px-4">Logout</a>
-                    {% else %}
-                    <a href="{% url 'vendor_login' %}" class="text-gray-700 px-4">Vendor Login</a>
-                    {% endif %}
-                {% else %}
-                    <a href="{% url 'wishlist' %}" class="text-gray-700 px-4">Wishlist</a>
-                    {% if user.is_authenticated %}
-                    <a href="{% url 'user_profile' %}" class="text-gray-700 px-4">Profile</a>
-                    <a href="{% url 'user_logout' %}" class="text-gray-700 px-4">Logout</a>
-                    
-                    {% else %}
-                    <a href="{% url 'user_login' %}" class="text-gray-700 px-4">User Login</a>
-                    {% endif %}
-                    <a href="{% url 'vendor_login' %}" target="_blank" class="text-gray-700 px-4">Vendor</a>
-                    <!-- Cart Icon -->
-                    <a href="#" id="cart-icon" class="relative text-gray-700">
-                        <i class="fas fa-shopping-cart text-2xl"></i>
-                        <span id="cart-count" class="absolute top-0 right-0 bg-pink-500 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center">0</span>
-                    </a>
-                {% endif %}
-            </div>
+          <!-- Site Name -->
+          <a href="{% url 'home' %}" class="text-xl font-semibold text-pink-500">{{ SITE_NAME_FULL }}</a>
+      
+          <!-- Navigation Links -->
+          <div class="flex items-center space-x-4">
+            {% if user.profile.user_type == 'vendor' %}
+              {% if user.is_authenticated %}
+                <a href="{% url 'vendor_dashboard' %}" class="text-gray-700 px-4">Dashboard</a>
+                <a href="{% url 'user_profile' %}" class="text-gray-700 px-4">Profile</a>
+                <a href="{% url 'user_logout' %}" class="text-gray-700 px-4">Logout</a>
+              {% else %}
+                <a href="{% url 'vendor_login' %}" class="text-gray-700 px-4">Vendor Login</a>
+              {% endif %}
+            {% else %}
+              {% if user.is_authenticated %}
+                <a href="{% url 'user_profile' %}" class="text-gray-700 px-4">Profile</a>
+                <a href="{% url 'user_logout' %}" class="text-gray-700 px-4">Logout</a>
+              {% else %}
+                <a href="{% url 'user_login' %}" class="text-gray-700 px-4">User Login</a>
+              {% endif %}
+      
+              <!-- Vendor Link -->
+              <a href="{% url 'vendor_login' %}" target="_blank" class="text-gray-700 px-4">Vendor</a>
+
+              <!-- Wishlist Icon with Counter -->
+              <a href="{% url 'wishlist' %}?id={{user.id}}" class="relative text-gray-700 hover:text-pink-500" title="Wishlist">
+                <i class="fas fa-heart text-2xl"></i>
+                <span id="wishlist-count" class="absolute top-0 right-0 bg-pink-500 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center transform translate-x-1/2 -translate-y-1/2">0</span>
+              </a>
+      
+              <!-- Cart Icon with Counter -->
+              <a href="#" id="cart-icon" class="relative text-gray-700 hover:text-pink-500" title="Cart">
+                <i class="fas fa-shopping-cart text-2xl"></i>
+                <span id="cart-count" class="absolute top-0 right-0 bg-pink-500 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center transform translate-x-1/2 -translate-y-1/2">0</span>
+              </a>
+            {% endif %}
+          </div>
         </div>
+      
         <!-- Toast Notification -->
         <div id="toast" class="hidden fixed top-5 right-5 bg-gray-800 text-white px-4 py-2 rounded shadow-lg"></div>
     </nav>
@@ -115,6 +126,7 @@
 
     <!-- Custom JS --> 
     {% load static %}
+    <script async src="https://static.addtoany.com/menu/page.js"></script>
     <script src="{% static 'assets/js/akpa_aku.js' %}"></script>
     <script src="{% static 'assets/js/cart_manager.js' %}"></script>
     <script src="{% static 'assets/js/discount.js' %}"></script>
@@ -182,7 +194,7 @@
             <!-- Modal Buttons -->
             <div class="flex justify-end space-x-2">
                 <button onclick="closeProductAttributesModal()" class="px-4 py-2 bg-gray-500 text-white rounded">Cancel</button>
-                <button type="button" id="confirmAddToCart" class="px-4 py-2 bg-pink-500 text-white rounded">Add to Cart</button>
+                <button type="button" id="confirmAddToCart" class="px-4 py-2 bg-pink-500 text-white rounded">Add Item</button>
             </div>
         </div>
     </div>
