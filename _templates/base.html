@@ -26,7 +26,11 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body class="bg-gray-100 text-gray-900 font-inter">
-
+    <!-- Global Variables -->
+    <script>
+        const user = JSON.parse('{{ json_user | escapejs }}');
+    </script>
+    
     <!-- Navigation Bar -->
     <nav class="bg-white shadow-md p-4 fixed top-0 left-0 w-full z-50 mb-2">
         <div class="container mx-auto flex justify-between items-center">
@@ -81,10 +85,6 @@
 
             <!-- Cart Footer -->
             <div class="mt-6 border-t pt-4">
-                <!-- <div class="flex justify-between mb-4">
-                    <span class="font-semibold">Subtotal:</span>
-                    <span id="cart-subtotal" class="font-semibold">₦0.00</span>
-                </div> -->
                 <a href="#" onclick="checkout()" class="block w-full bg-pink-500 text-white text-center py-2 rounded hover:bg-pink-600">Checkout</a>
             </div>
         </div>
@@ -149,32 +149,9 @@
         });
 
         // navigate to checkout page
-        async function checkout() {
-            try {
-                // Prepare request payload
-                const cartItems = wullinp.cart.getCart();
-                const response = await fetch("{% url 'checkout' %}?action=save-cart", {
-                    method: "POST",
-                    body: JSON.stringify(cartItems),
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": "{{ csrf_token }}"
-                    }
-                });
-
-                // Check if request was successful
-                if (!response.ok) {
-                    throw new Error(`Checkout failed: ${response.status}- ${response.statusText}`);
-                }
-
-                // Parse response (if needed)
-                const result = await response.json();
-
-                window.location.href = `{% url 'checkout' %}`;
-            } catch (error) {
-                console.error("Error during checkout:", error);
-                showToast("An error occurred during checkout. Please try again.", "error");
-            }
+        function checkout() {
+            
+            window.location.href = `{% url 'checkout' %}`;
         }
 
     </script>

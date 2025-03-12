@@ -35,6 +35,7 @@ const callback = function(response){
 // on close callback
 const onClose = function(){
     console.log('Payment closed');
+    Swal.close();
 }
 
 // meta data for the payment

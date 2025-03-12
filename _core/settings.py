@@ -86,7 +86,8 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 '_core.context_processors.site_name', # Add custom context processors here
-                '_core.context_processors.vendor_processor', 
+                '_core.context_processors.vendor_processor',
+                '_core.context_processors.jsonify_user', 
             ],
         },
     },

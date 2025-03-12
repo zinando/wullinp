@@ -1,8 +1,10 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from _core.utils.helpers import check_if_username_is_phone_or_email
+from orders.views import sync_cart
+import json
 
 # Create your views here.
 def user_login(request):
@@ -16,6 +18,7 @@ def user_login(request):
     elif request.method == 'POST':
         user_id = request.POST.get('user_id')
         password = request.POST.get('password')
+        cart = request.POST.get('cart', None)
 
         # check if username is email or phone
         username_type = check_if_username_is_phone_or_email(user_id)
@@ -28,6 +31,10 @@ def user_login(request):
         if user:
             login(request, user)
             message = 'Login Successful'
+
+            # update user cart
+            if cart:
+                sync_cart(request, json.loads(cart))
         else:
             errors.append('Invalid Username or Password')
         

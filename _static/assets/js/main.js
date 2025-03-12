@@ -291,7 +291,7 @@
         
             if (quantity < 1) {
                 showToast("Please enter a valid quantity", "error");
-                return;
+                return; 
             }
         
             let attributes = { quantity };

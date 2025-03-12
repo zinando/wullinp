@@ -27,7 +27,7 @@ urlpatterns = [
     path('admin/', admin.site.urls), 
     path('', home.views.home, name='home'),
     path('user/', include('user_register.url'), name='user_register'),
-    path('user/', include('wishlist.url'), name='wishlist'),
+    path('user/', include('wishlist.url')),
     path('user/', include('user_login.url'), name='user_login'),
     path('user/', include('user_logout.url'), name='user_logout'),
     path('vendor/', include('vendor_register.url'), name='vendor_register'),

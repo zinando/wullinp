@@ -12,11 +12,34 @@ function CartManager(storage, user) {
     if (!this.storage.getItem(cartKey)) {
       this.storage.setItem(cartKey, []);
     }
+
+    // // check if user object has a cart items
+    // if (this.user.cartItems.length > 0) {
+    //   this.storage.setItem(cartKey, this.user.cartItems);
+    // } else {
+    //   //dont empty the cart
+
+    //   //this.storage.setItem(cartKey, []);
+    // }
+    this.initCart();
+
     this.discountManager.init();
     this.shipmentManager.init(); // Initialize shipment manager
     this.updateCartUI();
     this.updateCartCount();
   };
+
+  this.initCart = function () {
+    if (this.user.isAuthenticated) {
+        this.user.cartItems.forEach((item) => {
+            if (!this.getCart().some(cartItem => cartItem.productId === item.productId && cartItem.color === item.color && cartItem.size === item.size)) {
+              // also check for color and size
+               
+                this.addItem(item);
+            }
+        });
+    }
+};
 
   this.getCart = function () {
     return this.storage.getItem(cartKey);
@@ -54,8 +77,10 @@ function CartManager(storage, user) {
       this.updateCartUI();
       this.updateCartCount();
 
-      // Apply fixed discount to each item added to cart
-      // this.discountManager.applyDiscount("FREESHIP");
+      // update the database cart if user is logged in
+      if (this.user.isAuthenticated) {
+        this.updateDatabaseCart();
+      }
   };
 
 
@@ -85,6 +110,11 @@ function CartManager(storage, user) {
       this.updateCartUI();
       this.updateCartCount();
       showToast("Item removed from cart", "info");
+
+      // update the database cart if user is logged in
+      if (this.user.isAuthenticated) {
+        this.updateDatabaseCart();
+      }
   };
 
    // add update cart count function
@@ -154,6 +184,42 @@ function CartManager(storage, user) {
       document.getElementById("cart-table").innerHTML = html;
     } else {
       document.getElementById("cart-table").innerHTML = "<p class='text-center text-gray-500 dark:text-gray-400'>Your cart is empty</p>";
+    }
+  };
+
+  this.clearCart = function () {
+    this.storage.setItem(cartKey, []);
+    this.updateCartUI();
+    this.updateCartCount();
+
+    // update the database cart if user is logged in
+    if (this.user.isAuthenticated) {
+      this.updateDatabaseCart();
+    }
+  };
+
+  this.updateDatabaseCart = async function () {
+      try {
+        // Prepare request payload
+        const cartItems = this.getCart();
+        const response = await fetch("/checkout/checkout/?action=save-cart", {
+            method: "POST",
+            body: JSON.stringify(cartItems),
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCSRFToken(),
+            }
+        });
+
+        // Check if request was successful
+        if (!response.ok) {
+            return false;
+        }
+        return true;
+    } catch (error) {
+        console.error("Error during checkout:", error);
+        showToast("An error occurred during checkout. Please try again.", "error");
+        return false;
     }
   };
 }

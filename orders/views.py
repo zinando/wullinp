@@ -1,7 +1,6 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 import json
-from rest_framework.renderers import JSONRenderer
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
@@ -44,31 +43,32 @@ def checkoutView(request):
         # get the post data
         data = request.data  #list
 
-        # delete all cart items
-        CartItem.objects.filter(user=request.user).delete()
+        # # delete all cart items
+        # CartItem.objects.filter(user=request.user).delete()
         
-        for item in data:
+        # for item in data:
             
-            product = Products.objects.filter(id=item['productId']).first()
-            if product is None:
-                continue
+        #     product = Products.objects.filter(id=item['productId']).first()
+        #     if product is None:
+        #         continue
 
-            # check if the item already exists in the cart with same attributes otherwise create a new one
-            cart_item = CartItem.objects.create(
-                user=request.user,
-                product=product,
-                quantity=item['quantity'],
-                size=item.get('size', None),
-                color=item.get('color', None),
-                gender=item.get('gender', None)
-                # defaults={
-                #     "quantity": item['quantity'],
-                #     "size": item.get('size', None),
-                #     "color": item.get('color', None),
-                # }
-            )
-            cart_item_serializer = CartItemSerializer(cart_item)
-            cart_items.append(cart_item_serializer.data)
+        #     # check if the item already exists in the cart with same attributes otherwise create a new one
+        #     cart_item = CartItem.objects.create(
+        #         user=request.user,
+        #         product=product,
+        #         quantity=item['quantity'],
+        #         size=item.get('size', None),
+        #         color=item.get('color', None),
+        #         gender=item.get('gender', None)
+        #         # defaults={
+        #         #     "quantity": item['quantity'],
+        #         #     "size": item.get('size', None),
+        #         #     "color": item.get('color', None),
+        #         # }
+        #     )
+        #     cart_item_serializer = CartItemSerializer(cart_item)
+        #     cart_items.append(cart_item_serializer.data)
+        cart_items = sync_cart(request, data)
 
         return Response({'status':1, 'message':'Cart items added successfuly', 'error':[]}, status=status.HTTP_200_OK)
     
@@ -119,3 +119,33 @@ def get_shipping_cost(request):
         shipping_cost = calculate_shipping_cost(cart_items, user_address, delivery_method, delivery_type)
         return Response({"status":1, "shipping_cost": shipping_cost}, status=status.HTTP_200_OK)
     return Response({"status":0}, status=status.HTTP_404_ADDRESS_NOT_FOUND)
+
+def sync_cart(request, cartItems):
+    cart_items = []
+    # delete all cart items
+    CartItem.objects.filter(user=request.user).delete()
+    
+    for item in cartItems:
+        
+        product = Products.objects.filter(id=item['productId']).first()
+        if product is None:
+            continue
+
+        # check if the item already exists in the cart with same attributes otherwise create a new one
+        cart_item = CartItem.objects.create(
+            user=request.user,
+            product=product,
+            quantity=item['quantity'],
+            size=item.get('size', None),
+            color=item.get('color', None),
+            gender=item.get('gender', None)
+            # defaults={
+            #     "quantity": item['quantity'],
+            #     "size": item.get('size', None),
+            #     "color": item.get('color', None),
+            # }
+        )
+        cart_item_serializer = CartItemSerializer(cart_item)
+        cart_items.append(cart_item_serializer.data)
+    return cart_items
+    

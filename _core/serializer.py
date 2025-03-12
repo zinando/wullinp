@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from user_profile.serializer import AddressSerializer
-from user_register.models import Profile
+from orders.serializer import CartItemSerializer
+from user_register.models import Profile 
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -36,11 +37,12 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer()
-    addresses = AddressSerializer(many=True, read_only=True) 
+    addresses = AddressSerializer(many=True, read_only=True)
+    cart_items = CartItemSerializer(many=True, read_only=True)
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'profile', 'first_name', 'last_name', 'is_staff', 'is_active', 
-                  'date_joined', 'last_login', 'groups', 'user_permissions', 'addresses']
+                  'date_joined', 'last_login', 'groups', 'user_permissions', 'addresses', 'cart_items']
         
     def update(self, instance, validated_data):
         print('user update method calle')

@@ -78,6 +78,18 @@ function togglePassword() {
         eyeIcon.classList.add("fa-eye");
     }
 }
+
+// before submitting, check if wullinp.cart.getCart() contains any items, if so, pass it to the server
+document.querySelector('form').addEventListener('submit', function() {
+    let cart = window.wullinp.cart.getCart();
+    if (cart.length > 0) {
+        let cartInput = document.createElement('input');
+        cartInput.type = 'hidden';
+        cartInput.name = 'cart';
+        cartInput.value = JSON.stringify(cart);
+        this.appendChild(cartInput);
+    }
+});
 </script>
 
 {% endblock %}
