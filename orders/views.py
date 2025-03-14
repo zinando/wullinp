@@ -9,6 +9,7 @@ from user_profile.models import Address
 from user_profile.serializer import AddressSerializer
 from products.models import Products
 from .serializer import CartItemSerializer
+from wishlist.models import Donators
 from _core.utils.helpers import calculate_shipping_cost, prepare_order, log_paystack_response
 from _core.utils.raw_data import pickup_locations
 
@@ -29,6 +30,24 @@ def checkoutView(request):
             return render(request, 'payment_confirmation.html', response['response'])
         
         return render(request, 'payment_confirmation.html', {'status': False, 'message': response['message'], 'error': ['Payment not confirmed']})
+    
+    elif request.method == 'GET' and request.GET.get('action') == 'confirm-donation':
+        txn_ref = request.GET.get('txn_ref', None)
+        if txn_ref is None:
+            return render(request, 'payment_confirmation.html', {'status': False, 'message': 'No transaction reference provided', 'error': ['Payment not confirmed']})
+        # log the order
+        response = log_paystack_response(txn_ref, 'donation')
+        # get the owner of the item
+        donator = Donators.objects.filter(txn_ref=txn_ref).first()
+        owner = donator.wishlist.user.first_name + ' ' + donator.wishlist.user.last_name
+        if response['status'] > 0:
+            if response['status'] == 1:
+                response['response']['message'] += f"\n\nYou have successfully donated to {owner}'s wishlist item."
+                
+            return render(request, 'payment_confirmation.html', response['response'])
+        
+        return render(request, 'payment_confirmation.html', {'status': False, 'message': response['message'], 'error': ['Payment not confirmed']})
+    
     elif request.method == 'GET':
         #get the cart items
         cart_items = CartItem.objects.filter(user=request.user)
@@ -42,40 +61,12 @@ def checkoutView(request):
     if request.method == 'POST' and request.GET.get('action') == 'save-cart':
         # get the post data
         data = request.data  #list
-
-        # # delete all cart items
-        # CartItem.objects.filter(user=request.user).delete()
-        
-        # for item in data:
-            
-        #     product = Products.objects.filter(id=item['productId']).first()
-        #     if product is None:
-        #         continue
-
-        #     # check if the item already exists in the cart with same attributes otherwise create a new one
-        #     cart_item = CartItem.objects.create(
-        #         user=request.user,
-        #         product=product,
-        #         quantity=item['quantity'],
-        #         size=item.get('size', None),
-        #         color=item.get('color', None),
-        #         gender=item.get('gender', None)
-        #         # defaults={
-        #         #     "quantity": item['quantity'],
-        #         #     "size": item.get('size', None),
-        #         #     "color": item.get('color', None),
-        #         # }
-        #     )
-        #     cart_item_serializer = CartItemSerializer(cart_item)
-        #     cart_items.append(cart_item_serializer.data)
         cart_items = sync_cart(request, data)
 
         return Response({'status':1, 'message':'Cart items added successfuly', 'error':[]}, status=status.HTTP_200_OK)
     
     elif request.method == 'POST' and request.GET.get('action') == 'verify-order':
         order_details = request.data
-        # we will verify: shipping cost, discount, and order total
-        # so we need: cart items, delivery address, discount code, delivery method, delivery type
         response = prepare_order(request, order_details)
 
         return Response(response, status=status.HTTP_200_OK)

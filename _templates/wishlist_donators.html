@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<!-- Tailwind CSS CDN -->
+<style>
+    .progress-bar {
+        transition: width 0.5s ease-in-out;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Page Content -->
+<div class="bg-gray-100 min-h-screen py-8">
+    <div class="container mx-auto px-4">
+        <!-- Back Button -->
+        <div class="mb-6">
+            <a href="{% url 'wishlist' %}?id={{wishlist.user_id}}" class="text-blue-500 hover:text-blue-700">
+                &larr; Back to Wish List
+            </a>
+        </div>
+
+        <!-- Product Details -->
+        <div class="bg-white shadow-lg rounded-lg p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Product Image -->
+                <div class="flex justify-center">
+                    <img src="{{ wishlist.product.image_1_cloud_url }}" alt="{{ wishlist.product.name }}" class="rounded-lg w-full max-w-md">
+                </div>
+
+                <!-- Product Information -->
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800 mb-4">{{ wishlist.product.name }}</h1>
+                    <div class="space-y-4">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Total Cost:</span>
+                            <span class="text-gray-800 font-semibold">{{ wishlist.total_cost|floatformat:2 }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Contributors:</span>
+                            <span class="text-gray-800 font-semibold">{{ wishlist.donator_count }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Status:</span>
+                            <span class="font-semibold">
+                                {% if wishlist.contribution_percentage >= 100 %}
+                                    <span class="text-green-600">Contribution Completed</span>
+                                {% else %}
+                                    <span class="text-blue-600">In Progress</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="mt-6">
+                        <div class="flex justify-between mb-2">
+                            <span class="text-gray-600">Contributed ({{ wishlist.contributed_amount|floatformat:2 }})</span>
+                            <span class="text-gray-600">{{ wishlist.contribution_percentage|floatformat:2 }}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-4">
+                            <div class="progress-bar bg-blue-500 h-4 rounded-full" style="width: {{ wishlist.contribution_percentage }}%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contributors Section -->
+        <div class="mt-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Contributors</h2>
+            <hr class="mb-6">
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for donator in wishlist.donators %}
+                {% if donator.payment_successful %}
+                <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+                    <div class="p-6">
+                        <h3 class="text-xl font-semibold text-gray-800">{{ donator.fullname }}</h3>
+                        <p class="text-gray-600 mt-2">{{ donator.amount|floatformat:2 }}</p>
+                        {% if wishlist.user_id == user.id %}<p class="text-gray-600 mt-2">{{ donator.mobile }}</p> {% endif %}
+                        <hr class="my-4">
+
+                        <!-- Collapsible Personal Message -->
+                        {% if donator.personal_message and wishlist.user_id == user.id %}
+                        <div x-data="{ open: false }">
+                            <button @click="open = !open" class="text-blue-500 hover:text-blue-700 focus:outline-none">
+                                <span x-text="open ? 'Hide Personal Message' : 'Show Personal Message'"></span> &rarr;
+                            </button>
+                            <div x-show="open" x-collapse class="mt-4">
+                                <p class="text-gray-600">{{ donator.personal_message }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Alpine.js for Collapsible Sections -->
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+{% endblock %}

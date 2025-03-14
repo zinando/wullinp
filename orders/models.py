@@ -6,7 +6,7 @@ import datetime
 
 # Create your models here.
 #create cart model
-class CartItem(models.Model):
+class CartItem(models.Model): 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='cart_items')
     product = models.ForeignKey(Products, on_delete=models.CASCADE, related_name='cart_items')
     quantity = models.IntegerField(default=1)
@@ -137,7 +137,7 @@ class PGRequest(models.Model): #payment gateway request log
         FAILED = "FAILED", "Failed"
         CANCELLED = "CANCELLED", "Cancelled"
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="transactions")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="transactions", null=True, blank=True)
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="transactions")
     user_card = models.ForeignKey(UserCards, on_delete=models.CASCADE, related_name="transactions", null=True, blank=True)
     amount = models.FloatField( default=0)
@@ -161,7 +161,10 @@ class PGRequest(models.Model): #payment gateway request log
     def save(self, *args, **kwargs):
         if not self.ref_id:
             # generate a unique refid with uuid
-            self.ref_id = f'REF-{self.user.id}-{str(uuid.uuid4().hex[:8].upper())}'
+            if self.user:
+                self.ref_id = f'REF-{self.user.id}-{str(uuid.uuid4().hex[:8].upper())}'
+            else:
+                self.ref_id = f'REF-{str(uuid.uuid4().hex[:8].upper())}'
         super().save(*args, **kwargs)
 
 class PaystackHook(models.Model):

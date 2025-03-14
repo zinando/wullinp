@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from user_register.models import Profile
 from products.models import ProductCategory, Products
 from discounts.models import Discount
-from orders.models import Order, OrderItem, PGRequest, PaystackHook
+from orders.models import Order, OrderItem, PGRequest, PaystackHook, CartItem
 import uuid
 import re
 import os
@@ -108,8 +108,6 @@ def calculate_total_discount(cart_items, discount):
                 total_discount += discount.value * item.quantity
 
     return total_discount
-
-
 
 def verify_order(request, order_details):
     """This function verifies an order and returns the order details"""
@@ -222,14 +220,15 @@ def pay_with_wallet(order):
 
     return order
 
-def log_paystack_response(txn_ref):
+def log_paystack_response(txn_ref, type='checkout'):
     """This function logs a Paystack response"""
     
-    user_id = txn_ref.split('-')[1]
-    user = User.objects.get(id=user_id)
-    # check if user is authenticated
-    if not user.is_authenticated:
-        return {'status':0, 'message':'User is not authenticated', 'error':[], 'response':{}}
+    if type == 'checkout':
+        user_id = txn_ref.split('-')[1]
+        user = User.objects.get(id=user_id)
+        # check if user is authenticated
+        if not user.is_authenticated:
+            return {'status':0, 'message':'User is not authenticated', 'error':[], 'response':{}}
     
     # verify the payment
     verification = verify_paystack_payment(txn_ref)
@@ -277,6 +276,33 @@ def verify_paystack_payment(txn_reference):
         data = response.json()
         if data['status']:
             data['data']['amount'] = data['data']['amount'] / 100
+            # check if the amount is correct
+            txn = PGRequest.objects.get(ref_id=txn_reference)
+            if txn.amount == data['data']['amount']:
+                data['status'] = True
+                data['message'] = "Verification successful"
+            else:
+                data['message'] = "Amount mismatch"
+                data['status'] = False
     else:
         data['message'] = response.text
     return data
+
+def create_model_instace(model, **kwargs):
+    """This function creates a model instance"""
+    return model(**kwargs)
+
+
+# function to delete first_donor order with txn_ref
+def delete_first_donor_order(txn_ref):
+    # get the pgrequest instance
+    txn = PGRequest.objects.get(ref_id=txn_ref)
+    order = txn.order
+    # check how many instances of pgrequest are in the order
+    pg_requests = PGRequest.objects.filter(order=order).all()
+    if pg_requests.count() == 1:
+        order.delete()
+        # delete orderitem
+        order_item = OrderItem.objects.get(order=order)
+        order_item.delete()
+    return

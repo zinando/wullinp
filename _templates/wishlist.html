@@ -66,16 +66,31 @@
                         <!-- Product Details -->
                         <div class="p-4">
                             <h6 class="text-lg font-semibold">{{ saved_product.product.name|truncatechars:35 }}</h6>
+                            <!-- add product attributes here on same line-->
                             <p class="text-gray-600">
-                                <!-- add naira sign here -->
-                                &#8358;
-                                {{ saved_product.product.cprice|floatformat:2 }}
+                                 &#8358;{{ saved_product.product.cprice|floatformat:2 }}
+                            </p>
+                            <p>
+                                <span class="text-gray-600 text-sm"> 
+                                Quantity: {{ saved_product.quantity }}
+                                </span>
+                            </p>
+                            <p>
+                                <span class="text-gray-600 text-sm"> 
+                                {{ saved_product.color }}, {{ saved_product.size }}
+                                </span>
+                            </p>
+                            <p class="text-gray-600">
+                                 Shipping: &#8358;{{ saved_product.shipping_cost|floatformat:2 }}
+                            </p>
+                            <p class="text-black-800">
+                                 Total: &#8358;{{ saved_product.total_cost|floatformat:2 }}
                             </p>
 
                             <!-- Progress Bar -->
                             <div class="mt-4">
                                 <div class="w-full bg-gray-200 rounded-full h-2.5">
-                                    <div class="bg-blue-500 h-2.5 rounded-full"
+                                    <div class="bg-green-500 h-2.5 rounded-full"
                                         style="width: {{ saved_product.contribution_percentage }}%;">
                                     </div>
                                 </div>
@@ -83,6 +98,13 @@
                                     <span>Contributed: &#8358;({{ saved_product.contributed_amount|floatformat:2 }})</span>
                                     <span>{{ saved_product.contribution_percentage }}%</span>
                                 </div>
+                                {% if saved_product.contributed_amount > 0 %}
+                                    <div class="flex justify-end text-sm mt-1">
+                                        <a href="{% url 'wishlist_donators' %}?id={{saved_product.id}}" class="italic text-blue-500 hover:text-orange-400">
+                                            Donators
+                                        </a>
+                                    </div>
+                                {% endif %}
                             </div>
 
                             <!-- Actions -->
@@ -90,10 +112,10 @@
                                 {% if not saved_product.is_fully_paid %}
                                     <button onclick="popit('{{ saved_product.id }}', '{{ saved_product.remaining_amount }}')"
                                         class="w-full bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
-                                        <i class="fas fa-heart"></i> Contribute
+                                        <i class="fas fa-heart"></i> show love
                                     </button>
                                 {% else %}
-                                    {% if request.user == user %}
+                                    {% if saved_product.user_id == user.id %}
                                         {% if not saved_product.requested_delivery %}
                                             <button onclick="RedeemWish('{{ saved_product.id }}')"
                                                 class="w-full bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">
@@ -106,9 +128,9 @@
                                 {% endif %}
 
                                 {% if saved_product.contribution_percentage == 0 and saved_product.user_id == user.id %}
-                                    <button onclick="removeWishListItem('{{ saved_product.product.id }}')"
+                                    <button onclick="removeWishListItem('{{ saved_product.id }}')"
                                         class="w-full bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">
-                                        <i class="fas fa-trash"></i> Delete
+                                        <i class="fas fa-trash"></i> Remove
                                     </button>
                                 {% endif %}
                             </div>
@@ -147,69 +169,29 @@
         });
     }
 
-    async function popit(wishId, unpaidAmount) {
-    // Convert unpaidAmount to float
-    const unpaid = parseFloat(unpaidAmount);
-    if (isNaN(unpaid)) {
-        Swal.fire('Error', 'Invalid unpaid amount.', 'error');
-        return;
-    }
-
-    // Collect and validate user data
-    const { value: formValues } = await Swal.fire({
-        title: 'Contribute to Wish',
-        html:
-            `<input id="amount" class="swal2-input" placeholder="Amount (min: 100)" type="number" min="100" max="${unpaid}">` +
-            `<input id="name" class="swal2-input" placeholder="Full Name">` +
-            `<input id="email" class="swal2-input" placeholder="Email Address">` +
-            `<input id="phone" class="swal2-input" placeholder="Phone Number">`,
-        focusConfirm: false,
-        preConfirm: () => {
-            const amount = parseFloat(document.getElementById('amount').value);
-            const name = document.getElementById('name').value.trim();
-            const email = document.getElementById('email').value.trim();
-            const phone = document.getElementById('phone').value.trim();
-
-            // Validate inputs
-            if (isNaN(amount)) {
-                Swal.showValidationMessage('Amount must be a number.');
-                return false;
-            }
-            if (amount < 100 || amount > unpaid) {
-                Swal.showValidationMessage(`Amount must be between 100 and ${unpaid}.`);
-                return false;
-            }
-            if (!name) {
-                Swal.showValidationMessage('Name is required.');
-                return false;
-            }
-            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                Swal.showValidationMessage('Valid email is required.');
-                return false;
-            }
-            if (!phone || !/^\d{10,15}$/.test(phone)) {
-                Swal.showValidationMessage('Valid phone number is required (10-15 digits).');
-                return false;
-            }
-
-            return { amount, name, email, phone };
+    // Call the function to start the process
+    function popit(wishId, unpaid) {
+        unpaid = parseFloat(unpaid);
+        wishId = parseInt(wishId);
+        if (isNaN(unpaid)) {
+            Swal.fire('Error', 'Invalid unpaid amount.', 'error');
+            return;
         }
-    });
 
-    if (formValues) {
-        // Create an object to store collected data
-        const userData = {
-            wishId: wishId,
-            amount: formValues.amount,
-            name: formValues.name,
-            email: formValues.email,
-            phone: formValues.phone
-        };
-
-        // Pass the data to the payment processing function
-        console.log(userData);
+        // Call the function to start the process
+        collectUserData(unpaid, wishId)
+            .then((userData) => {
+                if (userData) {
+                    console.log('Collected Data:', userData);
+                    // Pass the data to the payment processing function
+                    triggerProcessing();
+                    donateToWishlistItem(userData);
+                }
+            })
+            .catch((error) => {
+                console.error('Error collecting data:', error);
+            });
     }
-}
 
     function RedeemWish(wishId) {
         Swal.fire({
@@ -225,17 +207,35 @@
         });
     }
 
-    function removeWishListItem(productId) {
+    function removeWishListItem(wishId) {
         Swal.fire({
             title: 'Are you sure?',
-            text: 'This will remove the item from your wishlist.',
+            text: 'This will permanently remove the item from your wishlist.',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonText: 'Yes, remove it!',
         }).then((result) => {
             if (result.isConfirmed) {
                 // Handle removal logic here
-                console.log(`Removing product ${productId} from wishlist`);
+                fetch('/user/wishlist/api/', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFToken(),
+                    },
+                    body: JSON.stringify({ wishId: parseInt(wishId) }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if(data.status === 1){
+                        Swal.fire('Success', `${data.message}`, 'success').then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        // if user is not registered, display an error message
+                        Swal.fire('Error', `${data.message}`, 'error');
+                    }
+                })
             }
         });
     }

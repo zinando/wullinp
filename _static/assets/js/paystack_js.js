@@ -1,39 +1,42 @@
 // callback function. if payment is successful, call verifyPayment() to verify the payment
 const callback = function(response){
     triggerProcessing();
-    console.log(response);
-    // log payment response to the backend
-    // logPayment(response);
     window.location.href = '/checkout/checkout/?action=confirm-payment&txn_ref='+response.reference;
     
-}   
+}
 
-// // function to log payment response to the backend
-// function logPayment(paymentResponse){
-//     // make a POST request to the backend to log the payment response
-//     fetch('/checkout/checkout/?action=log-paystack-response', {
-//         method: 'POST',
-//         headers: {
-//             'Content-Type': 'application/json',
-//         },
-//         body: JSON.stringify(paymentResponse),
-//     })
-//     .then(response => response.json())
-//     .then(data => {
-//         console.log('Success:', data);
-//         // if payment is successful, call verifyPayment() to verify the payment
-//         if(data.status===1 && paymentResponse.status === 'success'){
-            
-//         }
-//     })
-//     .catch((error) => {
-//         console.error('Error:', error);
-//         /// go to error page
-//     });
-// }
+const donateCallback = function(response){
+    triggerProcessing();
+    window.location.href = '/checkout/checkout/?action=confirm-donation&txn_ref='+response.reference;
+}
 
 // on close callback
 const onClose = function(){
+    console.log('Payment closed');
+    Swal.close();
+}
+
+// wishOnClose callback if first donation
+const wishOnClose = function(){
+    // send a request back to server to delete first order if applicable
+    fetch('/user/wishlist/api/', {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken(),
+        },
+        data: JSON.stringify({'txn_ref': metaData.custom_fields[0].txn_ref, 'action': 'delete-first-donor-order'}),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.status === 1){
+            // if user is registered, trigger payment
+            Swal.fire('Error', `${data.message}`, 'error');
+        } else {
+            // if user is not registered, display an error message
+            Swal.fire('Error', `${data.message}`, 'error');
+        }
+    });
     console.log('Payment closed');
     Swal.close();
 }
@@ -45,6 +48,7 @@ const metaData = {
             display_name: '',
             mobile_number: '',
             payment_purpose: '',
+            txn_ref: '',
           },
     ]
 }
@@ -75,26 +79,26 @@ function verifyOrder(order_details, onFailure){
     });
 }
 
-function triggerPayment(order){
+function triggerPayment(order, type='checkout'){
     if (order.amount === 0) {
         // payment has been settled with the wallet
         console.log('Payment settled with the wallet');
         // return user to success page
         return;
     }
-    console.log(order);
     metaData.custom_fields[0].display_name = order.name;
     metaData.custom_fields[0].mobile_number = order.phone;
     metaData.custom_fields[0].payment_purpose = order.paymentPurposepurpose;
+    metaData.custom_fields[0].txn_ref = order.reference;
     // Initialize the payment
     const handler = PaystackPop.setup({
         key: order.paystackPublicKey,
         email: order.email,
-        amount: 20000, //`${order.amount * 100}`,
+        amount: `${order.amount * 100}`,
         ref: order.reference,
         metadata: metaData,
-        callback: callback,
-        onClose: onClose
+        callback: type === 'donation' ? donateCallback : callback,
+        onClose: order.first_donor ? wishOnClose : onClose,
     });
 
     // Open the Paystack payment modal
@@ -121,7 +125,7 @@ function donateToWishlistItem(userData){
     .then(data => {
         if(data.status === 1){
             // if user is registered, trigger payment
-            triggerPayment(data.order);
+            triggerPayment(data.order, 'donation');
         } else {
             // if user is not registered, display an error message
             Swal.fire('Error', `${data.message}`, 'error');

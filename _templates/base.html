@@ -191,6 +191,35 @@
                 <select id="modalColor" class="w-full p-2 border rounded"></select>
             </div>
 
+            <!-- For wishlist items, select the address and delivery type -->
+            <div id="wishAddressSelector" class="hidden mb-4">
+                <label class="block mb-2">Select Address:</label>
+                <div id="addressList" class="flex flex-col space-y-2">
+                   {% if user.addresses %}
+                        {% for address in user.addresses.all %}
+                            <div class="flex items center space-x-2">
+                                <input type="radio" name="wishAddress" id="address{{ address.id }}" value="{{ address.id }}">
+                                <label for="address{{ address.id }}">{{ address.house_address }}, {{ address.city }}...</label>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+            <div id="wishDeliveryTypeSelector" class="hidden mb-4">
+                <label class="block mb-2">Select Delivery Type:</label>
+                <div id="deliveryTypeList" class="flex flex-col space-y-2">
+                    <div class="flex items center space-x-2">
+                        <input type="radio" name="deliveryType" id="standard" value="regular" checked>
+                        <label for="regular">Regular Delivery</label>
+                    </div>
+                    <div class="flex items center space-x-2">
+                        <input type="radio" name="deliveryType" id="express" value="express">
+                        <label for="express">Express Delivery</label>
+                    </div>
+                </div>
+            </div>
+
+
             <!-- Modal Buttons -->
             <div class="flex justify-end space-x-2">
                 <button onclick="closeProductAttributesModal()" class="px-4 py-2 bg-gray-500 text-white rounded">Cancel</button>

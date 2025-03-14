@@ -209,6 +209,16 @@
 
     // Function to open the product attributes modal
     function openProductAttributesModal(productId, productName, stockCount, weight, width, height, length, sizes, colors, price, type='cart') {
+        // if type is wishlist, unhide the address and delivery type elements
+        if(type != 'cart'){
+            console.log('wishlist');
+            document.getElementById("wishAddressSelector").classList.remove("hidden");
+            document.getElementById("wishDeliveryTypeSelector").classList.remove("hidden");
+        } else {
+            console.log('cart');
+            document.getElementById("wishAddressSelector").classList.add("hidden");
+            document.getElementById("wishDeliveryTypeSelector").classList.add("hidden");
+        }
         // Store product ID
         $("#confirmAddToCart").data("id", productId);
         $("#confirmAddToCart").data("name", productName);
@@ -280,7 +290,6 @@
         // Function to trigger the product attributes modal for wishlist items
         $(document).on("click", ".addToWishList", function (e) {
             e.preventDefault();
-            console.log(wullinp.user.isAuthenticated); 
             if (!wullinp.user.isAuthenticated) {
                 showToast("Please login to add items to cart", "error");
                 return;
@@ -306,7 +315,23 @@
 
         // Function to collect product attributes and add to cart
         $(document).on("click", "#confirmAddToCart", function () {
+
             let cart = $(this).data("type") === "cart";
+            let addressId = null;
+            let deliveryType = null;
+            // if cart is false, check that address is selected
+            if(!cart){
+                // get the checked address radio button
+                addressId = document.querySelector('input[name="wishAddress"]:checked');
+                deliveryType = document.querySelector("input[name='deliveryType']:checked").value;
+                if(!addressId){
+                    showToast("Please select an address", "error");
+                    return;
+                }
+                addressId = parseInt(addressId.value);
+            }
+            
+            let deliveryMethod = 'home'
             let productId = $(this).data("id");
             let productName = $(this).data("name");
             let weight = parseFloat($(this).data("weight"));
@@ -327,7 +352,7 @@
             if (size) attributes.size = size;
             if (color) attributes.color = color;
             
-            let item = { productId, productName, price, weight, width, height, length, ...attributes };
+            let item = { productId, productName, price, weight, width, height, length, deliveryMethod, addressId, deliveryType, ...attributes };
             // Add item to cart or wishlist
             closeProductAttributesModal();
             if(cart){
@@ -363,5 +388,138 @@
 
     // fetch states data from API
     wullinp.states.fetchStates();
-    
 
+    
+    // Function to collect user data step by step
+    const collectUserData = async (unpaid, wishId) => {
+        let userData = {
+            wishId: wishId,
+            amount: null,
+            name: null,
+            email: null,
+            phone: null,
+            message: null
+        };
+
+        // Step 1: Collect Amount
+        const { value: amount } = await Swal.fire({
+            title: 'Contribute to Wish', //. Max: &#8358;' + unpaid,
+            input: 'number',
+            inputLabel: 'Amount (min: 100 - max: ' + unpaid + ')',
+            inputPlaceholder: 'Enter amount',
+            inputValue: userData.amount || '', // Restore previous value
+            inputAttributes: {
+                min: 100,
+                max: unpaid
+            },
+            showCancelButton: true,
+            confirmButtonText: 'Next',
+            inputValidator: (value) => {
+                if (!value) {
+                    return 'Amount is required.';
+                }
+                if (value < 100 || value > unpaid) {
+                    return `Amount must be between 100 and ${unpaid}.`;
+                }
+            }
+        });
+
+        if (amount) {
+            userData.amount = parseFloat(amount);
+
+            // Step 2: Collect Full Name
+            const { value: name } = await Swal.fire({
+                title: 'Your Full Name',
+                input: 'text',
+                inputLabel: 'Full Name',
+                inputPlaceholder: 'Enter your full name',
+                inputValue: userData.name || '', // Restore previous value
+                showCancelButton: true,
+                confirmButtonText: 'Next',
+                inputValidator: (value) => {
+                    if (!value) {
+                        return 'Name is required.';
+                    }
+                }
+            });
+
+            if (name === null) {
+                // User clicked "Back", go back to the previous step
+                return collectUserData(unpaid, wishId);
+            } else if (name) {
+                userData.name = name;
+
+                // Step 3: Collect Email Address
+                const { value: email } = await Swal.fire({
+                    title: 'Your Email Address',
+                    input: 'email',
+                    inputLabel: 'Email Address',
+                    inputPlaceholder: 'Enter your email',
+                    inputValue: userData.email || '', // Restore previous value
+                    showCancelButton: true,
+                    confirmButtonText: 'Next',
+                    inputValidator: (value) => {
+                        if (!value) {
+                            return 'Email is required.';
+                        }
+                        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                            return 'Valid email is required.';
+                        }
+                    }
+                });
+
+                if (email === null) {
+                    // User clicked "Back", go back to the previous step
+                    return collectUserData(unpaid, wishId);
+                } else if (email) {
+                    userData.email = email;
+
+                    // Step 4: Collect Phone Number
+                    const { value: phone } = await Swal.fire({
+                        title: 'Your Phone Number',
+                        input: 'tel',
+                        inputLabel: 'Phone Number',
+                        inputPlaceholder: 'Enter your phone number',
+                        inputValue: userData.phone || '', // Restore previous value
+                        showCancelButton: true,
+                        confirmButtonText: 'Next',
+                        inputValidator: (value) => {
+                            if (!value) {
+                                return 'Phone number is required.';
+                            }
+                            if (!/^\d{10,15}$/.test(value)) {
+                                return 'Valid phone number is required (10-15 digits).';
+                            }
+                        }
+                    });
+
+                    if (phone === null) {
+                        // User clicked "Back", go back to the previous step
+                        return collectUserData(unpaid, wishId);
+                    } else if (phone) {
+                        userData.phone = phone;
+
+                        // All steps completed, return the collected data
+                        // console.log(userData);
+                        // return userData;
+                        // step 5: Collect Message
+                        const { value: message } = await Swal.fire({
+                            title: 'Add personal message to the recipient',
+                            input: 'textarea',
+                            inputLabel: 'This is totally optional',
+                            inputPlaceholder: 'Enter your message',
+                            inputValue: userData.message || '', // Restore previous value
+                            showCancelButton: true,
+                            confirmButtonText: 'Next',
+                        });
+
+                        // there is no back button here, so we can just get the message whether it is null or not
+                        userData.message = message;
+                        return userData;
+                    }
+                }
+               
+
+            }
+        }
+    };
