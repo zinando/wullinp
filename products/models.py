@@ -8,7 +8,7 @@ import random
 import string
 
 # Create your models here.
-class Products(models.Model):
+class Products(models.Model): 
     # create a many to one relationship with the user model
     store = models.ForeignKey(User, on_delete=models.CASCADE, related_name="products")
     category = models.ForeignKey('ProductCategory', on_delete=models.CASCADE, related_name="products")

@@ -2,6 +2,7 @@
 
 {% block vendor_content %}
 
+{% load custom_filter %}
 <div class="min-h-screen flex items-center justify-center bg-gray-50 p-4">
     <div class="bg-white p-6 rounded-lg shadow-md w-full max-w-lg">
         <h2 class="text-2xl font-bold text-gray-800 text-center mb-4">Edit Product</h2>
@@ -27,7 +28,7 @@
                 <div>
                     <label class="block text-sm font-semibold text-gray-600">Features</label>
                     <textarea name="features" rows="3" required
-                              class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">{{ product.product_feature }}</textarea>
+                              class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">{{ product.product_feature | none_to_empty}}</textarea>
                 </div>
 
                 <div>
@@ -45,41 +46,99 @@
                     </select>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-semibold text-gray-600">Initial Price</label>
-                    <input type="number" name="preprice" step="0.01" value="{{ product.preprice }}" required
-                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                <div class="flex justify-between">
+                    <div class="w-1/2 pr-1">
+                        <label class="block text-sm font-semibold text-gray-600">Initial Price</label>
+                        <input type="number" name="preprice" step="0.01" value="{{ product.preprice }}" required
+                               class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                    </div>
+
+                    <div class="w-1/2 pl-1">
+                        <label class="block text-sm font-semibold text-gray-600">Current Price</label>
+                        <input type="number" name="cprice" step="0.01" value="{{ product.cprice }}" required
+                               class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                    </div>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-semibold text-gray-600">Current Price</label>
-                    <input type="number" name="cprice" step="0.01" value="{{ product.cprice }}" required
-                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                <div class="flex justify-between">
+                    <div class="w-1/2 pr-1">
+                        <label class="block text-sm font-semibold text-gray-600">Color Attributes -
+                            <span><small class="text-red-500">List multiple colors only if they have the same price.</small></span>
+                        </label>
+                        <input type="text" name="colors"
+                                value="{{ product.colors | list_to_string }}"
+                               class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500"
+                               placeholder="e.g Black,blue,red">
+                    </div>
+
+                    <div class="w-1/2 pl-1">
+                        <label class="block text-sm font-semibold text-gray-600">Size Attributes -
+                            <span><small class="text-red-500">List multiple sizes only if they have the same price.</small></span>
+                        </label>
+                        <input type="text" name="sizes"
+                                value="{{ product.sizes | list_to_string }}"
+                               class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500"
+                               placeholder="e.g 44,46,medium,XL">
+                    </div>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-semibold text-gray-600">Minimum Quantity</label>
-                    <input type="number" name="min_quantity" value="{{ product.min_quantity }}" required
-                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                <div class="flex justify-between">
+                    <div class="w-1/4 pr-1">
+                        <label class="block text-sm font-semibold text-gray-600">Weight (kg)</label>
+                        <input type="number" name="weight" min="1" 
+                                value="{{ product.weight }}" required
+                               class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                    </div>
+
+                    <div class="w-1/4 pl-1">
+                        <label class="block text-sm font-semibold text-gray-600">Length (cm)</label>
+                        <input type="number" name="length" 
+                                value="{{ product.length }}"    required
+                               class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div class="w-1/4 pl-1">
+                        <label class="block text-sm font-semibold text-gray-600">Width (cm)</label>
+                        <input type="number" name="width"
+                                value="{{ product.width }}" required
+                               class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div class="w-1/4 pl-1">
+                        <label class="block text-sm font-semibold text-gray-600">Height (cm)</label>
+                        <input type="number" name="height"
+                                value="{{ product.height }}" required
+                               class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                    </div>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-semibold text-gray-600">Stock</label>
-                    <input type="number" name="stock" value="{{ product.stock }}" required
-                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                <div class="flex justify-between">
+                    <div class="w-1/2 pr-1">
+                        <label class="block text-sm font-semibold text-gray-600">Minimum Quantity</label>
+                        <input type="number" name="min_quantity"
+                            value="{{ product.min_quantity}}" required
+                             class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                    </div>
+    
+                    <div class="w-1/2 pl-1">
+                        <label class="block text-sm font-semibold text-gray-600">Stock</label>
+                        <input type="number" name="stock"
+                            value="{{ product.stock }}" required
+                               class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                    </div>
                 </div>
 
                 <div>
                     <label class="block text-sm font-semibold text-gray-600">Buyer Note</label>
-                    <textarea name="buyer_note" rows="2"
-                              class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">{{ product.buyer_note }}</textarea>
+                    <textarea name="buyer_notes" rows="2"
+                              class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">{{ product.buyer_notes | none_to_empty }}</textarea>
                 </div>
 
                 <div id="error-message" class="text-red-500 text-sm font-semibold mt-2"></div>
 
-                <button id="update_button" type="submit" class="w-full bg-purple-600 text-white p-2 rounded mt-4 hover:bg-purple-700">
-                    Update Product
-                </button>
+                <div class="flex justify-between">
+                    <button id="update_button" type="submit"
+                            class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Update Product</button>
+                    <a href="/vendor/products/" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Cancel</a>
+                </div>
             </form>
         </div>
     </div>
@@ -96,7 +155,7 @@
             table_fields[key] = value;
         });
 
-        let request_data = {'user_id': '{{ user.id }}', 'table_fields': table_fields};
+        let request_data = {user_id: parseInt('{{ user.id }}'), product_id: parseInt('{{product.id}}'),  'table_fields': table_fields};
 
         fetch('/vendor/products/edit/?query=update_product', {
             method: 'POST',
@@ -108,12 +167,11 @@
         })
         .then(response => response.json())
         .then(data => {
-            if (!data.success) {
+            if (!data.status === 1) {
                 document.getElementById("error-message").innerText = data.errors || "An error occurred";
                 document.getElementById("update_button").disabled = false;
                 return;
             }
-            alert("Product updated successfully!");
             window.location.href = "/vendor/products/"; // Redirect to product list
         })
         .catch(error => {

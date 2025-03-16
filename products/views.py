@@ -2,10 +2,11 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from _core.utils.helpers import get_user_object, get_product_object, sanitize_string
 from _core.image_manager import ImageManager
-from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
+#from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 import json
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework import status
 from rest_framework import status
 from .models import Products, ProductCategory
 from .serializer import ProductCategorySerializer, ProductSerializer
@@ -147,7 +148,7 @@ def EditProductView(request):
         user = request.user
         product_id = request.GET.get('product_id')
         product = resource.fetch_vendor_product(user, product_id)
-        categories = get_category_hierarchy()
+        categories = resource.get_category_hierarchy()
         return render(request, 'edit_product.html', {'product': product, 'categories': categories})
     elif request.method == 'POST':
         query = request.GET.get('query')
@@ -159,15 +160,23 @@ def EditProductView(request):
             product.name = product_data.get('product_name')
             product.stock = product_data.get('stock')
             product.description = product_data.get('description')
-            product.product_feature = product_data.get('product_feature')
+            product.product_feature = product_data.get('features')
             product.cprice = float(product_data.get('cprice'))
             product.preprice = float(product_data.get('preprice'))
             product.min_quantity = product_data.get('min_quantity')
+            product.sizes = process_sizes(product_data)
+            product.colors = process_colors(product_data)
+            product.length = float(product_data.get('length'))
+            product.width = float(product_data.get('width'))
+            product.height = float(product_data.get('height'))
+            product.weight = float(product_data.get('weight'))
             product.buyer_notes = product_data.get('buyer_notes')
             product.last_updated_by = request.user.id
             product.save()
             messages.success(request, 'Product updated successfully.')
-            return render(request, 'vendor_dashboard.html') #go to product list page
+            return Response({'status': 1, 'message': 'Product updated successfully.'}, status=status.HTTP_200_OK)
+        
+        return Response({'status': 0, 'message': 'An error occurred while updating the product.'}, status=status.HTTP_400_BAD_REQUEST)
         
     #return render(request, 'edit_product.html')
 
@@ -252,7 +261,7 @@ def add_product(request):
             name=product_data.get('product_name'),
             stock=product_data.get('stock'),
             description=product_data.get('description'),
-            product_feature=json.dumps(product_data.get('product_feature')),
+            product_feature=product_data.get('features'),
             cprice=float(product_data.get('cprice')),
             preprice=float(product_data.get('preprice')),
             min_quantity=product_data.get('min_quantity'),
@@ -275,9 +284,9 @@ def add_product(request):
     except Exception as e:
         message = f"{e}"
         messages.error(request, message)
-        return Response({"errors": message}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"status": 0, "message": message, "errors": message}, status=status.HTTP_400_BAD_REQUEST)
 
-    return Response({"success": message, "product_id": product_id}, status=status.HTTP_201_CREATED)
+    return Response({"status": 1, "message": message, "product_id": product_id}, status=status.HTTP_201_CREATED)
 
 def process_sizes(data):
     sizes = data.get('sizes')

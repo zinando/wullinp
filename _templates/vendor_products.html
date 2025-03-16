@@ -19,8 +19,15 @@
             <div class="flex-1">
                 <h3 class="text-lg font-semibold">{{ product.name }}</h3>
                 <p class="text-green-600 font-bold">&#8358;{{ product.cprice }}</p>
+                <div class="flex justify-between mt-3 product-actions lg:hidden">
+                    <a href="{% url 'edit_product' %}?product_id={{ product.id }}" data-pid="{{product.id}}" class="text-blue-500 text-sm">Edit</a>
+                    <a href="/delete-product/{{ product.id }}/" data-pid="{{product.id}}" class="text-red-500 text-sm">Delete</a>
+                    {% if not product.is_published %}
+                    <a href="/publish-product/{{ product.id }}/" data-pid="{{product.id}}" class="text-green-500 text-sm">Publish</a>
+                    {% endif %}
+                </div>
             </div>
-            <div class="flex space-x-2 product-actions">
+            <div class="flex space-x-2 product-actions hidden lg:block">
                 <a href="{% url 'edit_product' %}?product_id={{ product.id }}" data-pid="{{product.id}}" class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-sm">Edit</a>
                 <a href="/delete-product/{{ product.id }}/" data-pid="{{product.id}}" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 text-sm">Delete</a>
                 {% if not product.is_published %}
