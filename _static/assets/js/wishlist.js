@@ -10,7 +10,9 @@ function WishlistManager(storage, user) {
       if (!this.storage.getItem(storageKey)) {
         this.storage.setItem(storageKey, []);
       }
-      this.updateWishlistCount();
+      if (!user || !user.isVendor) {
+        this.updateWishlistCount();
+      }
     };
   
     this.addToWishlist = function (item) {

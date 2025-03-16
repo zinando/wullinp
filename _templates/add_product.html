@@ -41,29 +41,79 @@
                     </select>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-semibold text-gray-600">Initial Price</label>
-                    <input type="number" name="preprice" step="0.01" required
-                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                <div class="flex justify-between">
+                    <div class="w-1/2 pr-1">
+                        <label class="block text-sm font-semibold text-gray-600">Initial Price</label>
+                        <input type="number" name="preprice" required
+                               class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                    </div>
+
+                    <div class="w-1/2 pl-1">
+                        <label class="block text-sm font-semibold text-gray-600">Current Price</label>
+                        <input type="number" name="cprice" required
+                               class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                    </div>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-semibold text-gray-600">Current Price</label>
-                    <input type="number" name="cprice" step="0.01" required
-                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                <div class="flex justify-between">
+                    <div class="w-1/2 pr-1">
+                        <label class="block text-sm font-semibold text-gray-600">Color Attributes -
+                            <span><small class="text-red-500">List multiple colors only if they have the same price.</small></span>
+                        </label>
+                        <input type="text" name="colors"
+                               class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500"
+                               placeholder="e.g Black,blue,red">
+                    </div>
+
+                    <div class="w-1/2 pl-1">
+                        <label class="block text-sm font-semibold text-gray-600">Size Attributes -
+                            <span><small class="text-red-500">List multiple sizes only if they have the same price.</small></span>
+                        </label>
+                        <input type="text" name="sizes"
+                               class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500"
+                               placeholder="e.g 44,46,medium,XL">
+                    </div>
                 </div>
+
+                <!-- combine four fields: weight, length, width, height -->
+                <div class="flex justify-between">
+                    <div class="w-1/4 pr-1">
+                        <label class="block text-sm font-semibold text-gray-600">Weight (kg)</label>
+                        <input type="number" name="weight" min="1" required
+                               class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                    </div>
+
+                    <div class="w-1/4 pl-1">
+                        <label class="block text-sm font-semibold text-gray-600">Length (cm)</label>
+                        <input type="number" name="length" required
+                               class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div class="w-1/4 pl-1">
+                        <label class="block text-sm font-semibold text-gray-600">Width (cm)</label>
+                        <input type="number" name="width" required
+                               class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div class="w-1/4 pl-1">
+                        <label class="block text-sm font-semibold text-gray-600">Height (cm)</label>
+                        <input type="number" name="height" required
+                               class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                    </div>
+                </div>
+
 
                 <!-- min quantity -->
-                <div>
-                    <label class="block text-sm font-semibold text-gray-600">Minimum Quantity</label>
-                    <input type="number" name="min_quantity" required
-                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-semibold text-gray-600">Stock</label>
-                    <input type="number" name="stock" required
-                           class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                <div class="flex justify-between">
+                    <div class="w-1/2 pr-1">
+                        <label class="block text-sm font-semibold text-gray-600">Minimum Quantity</label>
+                        <input type="number" name="min_quantity" required
+                             class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                    </div>
+    
+                    <div class="w-1/2 pl-1">
+                        <label class="block text-sm font-semibold text-gray-600">Stock</label>
+                        <input type="number" name="stock" required
+                               class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                    </div>
                 </div>
 
                 <!-- buyer note -->
@@ -139,8 +189,6 @@
             document.getElementById("imageUploadForm").classList.remove("hidden");
             // Set product_id in image upload form and title for the image form
             document.querySelector("#imageUploadForm input[name='product_id']").value = data.product_id;
-            alert(`Product ID: ${data.product_id}`);
-            //console.log(`Our data: ${JSON.stringify(data)}`);
             document.querySelector("#imageUploadForm #title").innerText = "Upload Images for: " + table_fields['product_name'];
         })
         .catch(error => {

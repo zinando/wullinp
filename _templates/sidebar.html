@@ -1,0 +1,72 @@
+<!-- Sidebar -->
+<div class="fixed top-16 left-0 z-40 w-64 bg-transparent max-h-16">
+    <!-- Mobile Toggle Button -->
+    <div class="lg:hidden fixed top-16 p-4">
+        <button id="dashboardSidebarToggleButton" class="text-gray-600 hover:text-gray-800 focus:outline-none dashboardSidebarToggleButton">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+
+    <!-- Sidebar Content -->
+    <div id="dashboard-sidebar" class="dashboard-sidebar dashboard-sidebar-hidden relative top-2 lg:fixed lg:top-32 lg:left-4 lg:translate-x-0 w-64 bg-white overflow-y-auto shadow-lg ">
+        <!-- Mobile Back Button -->
+        <div class="lg:hidden p-4 border-b border-gray-200">
+            <button class="filter-back flex items-center text-gray-600 hover:text-gray-800 focus:outline-none dashboardSidebarToggleButton">
+                <i class="fas fa-angle-left mr-2"></i> Back
+            </button>
+        </div>
+
+        <!-- Navigation Links -->
+        <div class="block-content p-4">
+            <ul class="space-y-2">
+                <!-- Dashboard -->
+                <li>
+                    <a href="{% url 'user_dashboard' %}"
+                        class="flex items-center p-2 text-gray-700 hover:bg-blue-50 rounded-md transition-colors duration-200">
+                        <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
+                    </a>
+                </li>
+
+                <!-- My Profile -->
+                <li>
+                    <a href="{% url 'user_profile' %}"
+                        class="flex items-center p-2 text-gray-700 hover:bg-blue-50 rounded-md transition-colors duration-200">
+                        <i class="fas fa-user mr-2"></i> My Profile
+                    </a>
+                </li>
+
+                <!-- Address Book -->
+                <li>
+                    <a href="#"
+                        class="flex items-center p-2 text-gray-700 hover:bg-blue-50 rounded-md transition-colors duration-200">
+                        <i class="fas fa-address-book mr-2"></i> Address Book
+                    </a>
+                </li>
+
+                <!-- Gift Orders -->
+                <li>
+                    <a href="#"
+                        class="flex items-center p-2 text-gray-700 hover:bg-blue-50 rounded-md transition-colors duration-200">
+                        <i class="fas fa-gift mr-2"></i> Gift Orders
+                    </a>
+                </li>
+
+                <!-- My Wish List -->
+                <li>
+                    <a href="{% url 'wishlist' %}?id={{ request.user.id }}"
+                        class="flex items-center p-2 text-gray-700 hover:bg-blue-50 rounded-md transition-colors duration-200">
+                        <i class="fas fa-heart mr-2"></i> My Wish List
+                    </a>
+                </li>
+
+                <!-- Log Out -->
+                <li>
+                    <a href="{% url 'user_logout' %}"
+                        class="flex items-center p-2 text-gray-700 hover:bg-blue-50 rounded-md transition-colors duration-200">
+                        <i class="fas fa-sign-out-alt mr-2"></i> Log Out
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>

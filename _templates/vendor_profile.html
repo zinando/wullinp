@@ -1,0 +1,167 @@
+{% extends "vendor_base.html" %}
+
+{% block vendor_content %}
+<div class="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+    <div class="bg-white p-6 rounded-lg shadow-md w-full max-w-lg">
+        <h2 class="text-2xl font-bold text-gray-800 text-center mb-4">Vendor Profile Information</h2>
+
+        <!-- Display Vendor Details -->
+        <div class="text-center text-gray-700">
+            <p><strong>Username:</strong> {{ user.username }}</p>
+            <p><strong>Email:</strong> {{ user.email }}</p>
+            <p><strong>Phone:</strong> {{ user.profile.phone }}</p>
+            <p><strong>Business Name:</strong> {{ user.profile.business_name }}</p>
+            <p><strong>Business Address:</strong> {{ user.profile.address }}</p>
+        </div>
+
+        <!-- Edit Profile Button (Opens Modal) -->
+        <div class="text-center mt-4">
+            <a href="#" onclick="openProfileModal()" class="text-sm text-indigo-600 hover:underline">Edit Profile</a>
+            <span class="mx-2 text-gray-400">|</span>
+            <a href="#" onclick="openPasswordModal()" class="text-sm text-indigo-600 hover:underline">Change Password</a>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Dialog for Editing Profile -->
+<div id="profileModal" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 hidden">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md relative">
+        <button onclick="closeModal()" class="absolute top-2 right-2 text-gray-600 hover:text-gray-900">✖</button>
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">Edit Profile</h3>
+
+        <form id="edit_profile_form" method="POST" class="space-y-4">
+            {% csrf_token %}
+            <input id="user_type" data-user_id="{{ user.id }}" type="hidden" name="user_type" value="vendor">
+
+            <!-- Common Fields -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-600">Phone Number</label>
+                <input type="number" name="phone" value="{{ user.profile.phone }}" required
+                       class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500" minlength="11">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-600">Email</label>
+                <input type="email" name="email" value="{{ user.email }}" required
+                       class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-600">Business Address</label>
+                <input type="text" name="address" required value="{{ user.profile.address }}"
+                       class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+            </div>
+
+            <!-- Vendor-Specific Fields -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-600">Business Name</label>
+                <input type="text" name="business_name" value="{{ user.profile.business_name }}" required
+                       class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+            </div>
+
+            <!-- Error Message -->
+            <div>
+                <p id="error_message" class="text-red-500 text-sm"></p>
+            </div>
+
+            <button type="submit" class="w-full bg-purple-600 text-white p-2 rounded hover:bg-purple-700">
+                Save Changes
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Dialog for Changing Password -->
+<div id="passwordModal" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 hidden">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md relative">
+        <button onclick="closePasswordModal()" class="absolute top-2 right-2 text-gray-600 hover:text-gray-900">✖</button>
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">Change Password</h3>
+
+        <form id="change_password_form" method="POST" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="user_id" value="{{ user.id }}">
+            <div>
+                <label class="block text-sm font-semibold text-gray-600">Current Password</label>
+                <input type="password" name="current_password" required
+                       class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-600">New Password</label>
+                <input type="password" name="new_password" required
+                       class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-600">Confirm New Password</label>
+                <input type="password" name="confirm_password" required
+                       class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+            </div>
+
+            <!-- Error Message -->
+            <div>
+                <p id="password_error_message" class="text-red-500 text-sm"></p>
+            </div>
+
+            <button id="password_submit" type="submit" class="w-full bg-purple-600 text-white p-2 rounded hover:bg-purple-700">
+                Change Password
+            </button>
+        </form>
+    </div>
+</div>
+
+
+<!-- JavaScript for Modal -->
+<script>
+    function openProfileModal() {
+        console.log("Opening modal");
+        document.getElementById("profileModal").classList.remove("hidden");
+    }
+
+    function closeModal() {
+        document.getElementById("profileModal").classList.add("hidden");
+    }
+
+    function openPasswordModal() {
+        document.getElementById("passwordModal").classList.remove("hidden");
+    }
+
+    function closePasswordModal() {
+        document.getElementById("passwordModal").classList.add("hidden");
+    }
+
+    document.getElementById("edit_profile_form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        document.getElementById("error_message").innerText = "";
+        const formData = new FormData(document.getElementById("edit_profile_form"));
+        const response = await fetch("{% url 'update_vendor_profile' %}", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+            },
+            body: formData,
+        });
+        if (response.ok) {
+            window.location.reload();
+        } else {
+            const result = await response.json();
+            document.getElementById("error_message").innerText = result.error || "An error occurred.";
+        }
+    });
+
+    document.getElementById("change_password_form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        document.getElementById("password_error_message").innerText = "";
+        const formData = new FormData(document.getElementById("change_password_form"));
+        const response = await fetch("{% url 'change_user_password' %}", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+            },
+            body: formData,
+        });
+        if (response.ok) {
+            window.location.reload();
+        } else {
+            const result = await response.json();
+            document.getElementById("password_error_message").innerText = result.error || "An error occurred.";
+        }
+    });
+</script>
+{% endblock %}

@@ -14,7 +14,13 @@ import requests
 # Create your views here.
 @login_required(login_url='user_login')
 def user_profile(request):
-    return render(request, 'user_profile.html')
+    template = 'user_profile.html' if request.user.profile.user_type == 'user' else 'vendor_profile.html'
+    return render(request, template)
+
+@login_required(login_url='user_login')
+def user_dashboard(request):
+    wishlist_url = request.build_absolute_uri('/user/wishlist/')
+    return render(request, 'user_dashboard.html', {'wishlist_url': wishlist_url})
 
 @api_view(['PUT'])
 def update_profile(request):

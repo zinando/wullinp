@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<style>
+    /* Custom styles for cards */
+    .card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Dashboard Section -->
+<div class="min-h-screen bg-gray-100 p-6">
+    <div class="container mx-auto">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <!-- Sidebar -->
+            <div class="lg:col-span-1">
+                {% include "sidebar.html" %}
+            </div>
+
+            <!-- Main Content -->
+            <div class="lg:col-span-3">
+                <!-- Dashboard Header -->
+                <div class="text-center mb-8">
+                    <h1 class="text-3xl font-bold text-gray-800">My Wishlist Page</h1>
+                </div>
+
+                <!-- Copy Link Section -->
+                <div class="mb-8">
+                    <div class="flex items-center justify-center">
+                        <input type="text" id="showpaylink" value="{{wishlist_url}}?id={{user.id}}" readonly
+                            class="w-full max-w-md px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none">
+                        <button onclick="copyToClipboard()"
+                            class="px-4 py-2 bg-blue-500 text-white rounded-r-md hover:bg-blue-600 focus:outline-none">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <!-- My Wishlist Card -->
+                    <a href="#" class="card bg-white rounded-lg shadow-md p-6">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-stack-overflow text-blue-500 text-2xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-gray-600">My Wishlist</p>
+                                <h3 class="text-2xl font-bold text-gray-800">0</h3>
+                                <p class="text-sm text-gray-500">Items</p>
+                            </div>
+                        </div>
+                    </a>
+
+                    <!-- Active Orders Card -->
+                    <a href="#" class="card bg-white rounded-lg shadow-md p-6">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-money text-yellow-500 text-2xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-gray-600">Active Orders</p>
+                                <h3 class="text-2xl font-bold text-gray-800">0</h3>
+                                <p class="text-sm text-gray-500">Paid Orders</p>
+                            </div>
+                        </div>
+                    </a>
+
+                    <!-- Total Spent Card -->
+                    <div class="card bg-white rounded-lg shadow-md p-6">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-money text-green-500 text-2xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-gray-600">Total Spent</p>
+                                <h3 class="text-2xl font-bold text-gray-800">{{ total_spent|floatformat:2 }}</h3>
+                                <p class="text-sm text-gray-500">Spent So Far</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pending Closure Section -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Pending Closure</h3>
+                    <hr class="mb-4">
+
+                    {% if pending_orders_to_close %}
+                    <div class="bg-blue-100 p-4 rounded-lg mb-4">
+                        <p class="text-blue-800">Seller of gift item has marked these items as delivered. Please confirm delivery by marking the item.</p>
+                    </div>
+
+                    {% for order in pending_orders_to_close %}
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-center mb-4">
+                        <div class="col-span-1">
+                            <img src="{{ order.thumb }}" alt="{{ order.productname }}" class="w-full rounded-lg">
+                        </div>
+                        <div class="col-span-2">
+                            <h4 class="text-lg font-bold text-gray-800">{{ order.productname }}</h4>
+                            <p class="text-gray-600"><strong>Ordered On:</strong> {{ order.ordertime }}</p>
+                        </div>
+                        <div class="col-span-1">
+                            <a href="#"
+                                class="block w-full text-center px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+                                Mark as Received
+                            </a>
+                        </div>
+                    </div>
+                    <hr class="my-4">
+                    {% endfor %}
+
+                    {% else %}
+                    <div class="bg-gray-100 p-4 rounded-lg">
+                        <p class="text-gray-600">No pending transactions to close.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Function to copy the wishlist link to clipboard
+    function copyToClipboard() {
+        const input = document.getElementById('showpaylink');
+        input.select();
+        document.execCommand('copy');
+
+        Swal.fire({
+            icon: 'success',
+            title: 'Wishlist link copied!',
+            text: 'Share it wherever you want.',
+            timer: 2000,
+            showConfirmButton: false
+        });
+    }
+
+</script>
+{% endblock %}

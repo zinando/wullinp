@@ -1,0 +1,9 @@
+/* Custom CSS for the Wullinp pages*/
+
+/* Custom user side bar menu css */
+.dashboard-sidebar {
+    transition: transform 0.4s ease-in-out;
+}
+.dashboard-sidebar-hidden {
+    transform: translateX(-100%);
+}

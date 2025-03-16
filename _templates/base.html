@@ -23,6 +23,13 @@
     <!-- paystack js -->
     <script src="https://js.paystack.co/v1/inline.js"></script>
 
+    <!-- alpine js -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@2.8.2/dist/alpine.min.js" defer></script>
+
+    <!-- Custom CSS -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'assets/style/wullinp.css' %}">
+
     {% block extra_css %}{% endblock %}
 </head>
 <body class="bg-gray-100 text-gray-900 font-inter">
@@ -39,25 +46,27 @@
       
           <!-- Navigation Links -->
           <div class="flex items-center space-x-4">
-            {% if user.profile.user_type == 'vendor' %}
+            
               {% if user.is_authenticated %}
-                <a href="{% url 'vendor_dashboard' %}" class="text-gray-700 px-4">Dashboard</a>
-                <a href="{% url 'user_profile' %}" class="text-gray-700 px-4">Profile</a>
-                <a href="{% url 'user_logout' %}" class="text-gray-700 px-4">Logout</a>
+                <a href="{% if user.profile.user_type == 'vendor' %}{% url 'vendor_dashboard' %}{%else%}{% url 'user_dashboard' %}{%endif%}" class="text-gray-700 px-4">Dashboard</a>
+                <!-- <a href="{% url 'user_profile' %}" class="text-gray-700 px-4">Profile</a>
+                <a href="{% url 'user_logout' %}" class="text-gray-700 px-4">Logout</a> -->
               {% else %}
-                <a href="{% url 'vendor_login' %}" class="text-gray-700 px-4">Vendor Login</a>
+              <a href="{% url 'user_login' %}" class="text-gray-700 px-4">Login</a>
+                <!-- <a href="{% url 'vendor_login' %}" class="text-gray-700 px-4">Vendor Login</a> -->
               {% endif %}
-            {% else %}
+            
               {% if user.is_authenticated %}
-                <a href="{% url 'user_profile' %}" class="text-gray-700 px-4">Profile</a>
-                <a href="{% url 'user_logout' %}" class="text-gray-700 px-4">Logout</a>
+                <!-- <a href="{% url 'user_profile' %}" class="text-gray-700 px-4">Profile</a> -->
+                <!-- <a href="{% url 'user_logout' %}" class="text-gray-700 px-4">Logout</a> -->
               {% else %}
-                <a href="{% url 'user_login' %}" class="text-gray-700 px-4">User Login</a>
+                <!-- <a href="{% url 'user_login' %}" class="text-gray-700 px-4">User Login</a> -->
               {% endif %}
       
               <!-- Vendor Link -->
-              <a href="{% url 'vendor_login' %}" target="_blank" class="text-gray-700 px-4">Vendor</a>
-
+              <!-- <a href="{% url 'vendor_login' %}" target="_blank" class="text-gray-700 px-4">Vendor</a> -->
+            
+              {% if user.profile.user_type != 'vendor' %}
               <!-- Wishlist Icon with Counter -->
               <a href="{% url 'wishlist' %}?id={{user.id}}" class="relative text-gray-700 hover:text-pink-500" title="Wishlist">
                 <i class="fas fa-heart text-2xl"></i>
@@ -103,14 +112,15 @@
 
     <!-- Page Content -->
     <div class="container mx-auto mt-6 pt-11">
-        <!-- Display messages -->
         {% if messages %}
-        <div class="mb-4">
-            {% for message in messages %}
-            <div class="bg-{{ message.tags }}-100 border border-{{ message.tags }}-400 text-{{ message.tags }}-700 px-4 py-2 rounded-md mb-2">
-                {{ message }}
+        <div class="flex justify-center items-center mb-4">
+            <div class="text-center">
+                {% for message in messages %}
+                <div class="bg-{{ message.tags }}-100 border border-{{ message.tags }}-400 text-{{ message.tags }}-700 px-4 py-2 rounded-md mb-2">
+                    {{ message }}
+                </div>
+                {% endfor %}
             </div>
-            {% endfor %}
         </div>
         {% endif %}
 
@@ -125,7 +135,6 @@
     </footer>
 
     <!-- Custom JS --> 
-    {% load static %}
     <script async src="https://static.addtoany.com/menu/page.js"></script>
     <script src="{% static 'assets/js/akpa_aku.js' %}"></script>
     <script src="{% static 'assets/js/cart_manager.js' %}"></script>
@@ -137,28 +146,33 @@
     <script src="{% static 'assets/js/storage_engine.js' %}"></script>
     <script src="{% static 'assets/js/site_info.js' %}"></script>
     <script src="{% static 'assets/js/states_manager.js' %}"></script>
+    <script src="{% static 'assets/js/sidebar.js' %}"></script>
     <script src="{% static 'assets/js/main.js' %}"></script>
     <script src="{% static 'assets/js/paystack_js.js' %}"></script>
 
+
     <!-- Cart Sidebar Script -->
     <script>
-        // Open Cart Sidebar
-        document.getElementById('cart-icon').addEventListener('click', function (e) {
-            e.preventDefault();
-            document.getElementById('cart-sidebar').classList.remove('translate-x-full');
-        });
+        if (!user || user.profile.user_type != 'vendor') {
+        
+            // Open Cart Sidebar
+            document.getElementById('cart-icon').addEventListener('click', function (e) {
+                e.preventDefault();
+                document.getElementById('cart-sidebar').classList.remove('translate-x-full');
+            });
 
-        // Close Cart Sidebar
-        document.getElementById('close-cart').addEventListener('click', function () {
-            document.getElementById('cart-sidebar').classList.add('translate-x-full');
-        });
-
-        // close cart sidebar when clicked outside
-        document.addEventListener('click', function (e) {
-            if (!e.target.closest('#cart-sidebar') && !e.target.closest('#cart-icon')) {
+            // Close Cart Sidebar
+            document.getElementById('close-cart').addEventListener('click', function () {
                 document.getElementById('cart-sidebar').classList.add('translate-x-full');
-            }
-        });
+            });
+
+            // close cart sidebar when clicked outside
+            document.addEventListener('click', function (e) {
+                if (!e.target.closest('#cart-sidebar') && !e.target.closest('#cart-icon')) {
+                    document.getElementById('cart-sidebar').classList.add('translate-x-full');
+                }
+            });
+        }
 
         // navigate to checkout page
         function checkout() {

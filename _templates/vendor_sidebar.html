@@ -1,0 +1,233 @@
+<div class="fixed top-16 left-0 z-40 w-64 bg-transparent max-h-16">
+    <!-- Mobile Toggle Button -->
+    <div class="lg:hidden fixed top-16 p-4">
+        <button id="dashboardSidebarToggleButton" class="text-gray-600 hover:text-gray-800 focus:outline-none dashboardSidebarToggleButton">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+
+    <!-- Sidebar Content -->
+    <div id="dashboard-sidebar" class="dashboard-sidebar dashboard-sidebar-hidden lg:translate-x-0 relative top-2 lg:fixed lg:top-16 w-64 bg-white overflow-y-auto shadow-lg lg:left-4">
+        <!-- Mobile Back Button -->
+        <div class="lg:hidden p-4 border-b border-gray-200">
+            <button class="filter-back flex items-center text-gray-600 hover:text-gray-800 focus:outline-none dashboardSidebarToggleButton">
+                <i class="fas fa-angle-left mr-2"></i> Back
+            </button>
+        </div>
+        
+        <div class="block-content p-4">
+            <div class="p-4">
+                <ul class="space-y-2"> 
+                    <!-- Dashboard -->
+                    <li>
+                        <a href="{% url 'vendor_dashboard' %}" class="flex items-center p-2 text-gray-700 hover:bg-orange-50 rounded-md">
+                            <i class="fas fa-tachometer-alt mr-2"></i> 📊 Dashboard
+                        </a>
+                    </li>
+
+                    <!-- Sales & Revenue -->
+                    <li>
+                        <button class="flex items-center justify-between w-full p-2 text-gray-700 hover:bg-orange-50 rounded-md"  onclick="toggleSidebarSubmenu('sidebar-submenu-1')">
+                            <div class="flex items-center">
+                                <i class="fas fa-chart-line mr-2"></i> Sales & Revenue
+                            </div>
+                            <i :class="openSubmenu === 'sales' ? 'fas fa-chevron-up' : 'fas fa-chevron-down'" class="text-sm"></i>
+                        </button>
+                        <ul id="sidebar-submenu-1" class="bg-gray-100 mt-2 pl-4 overflow-hidden transition-all duration-300 max-h-0">
+                            <li>
+                                <a href="#" class="flex items-center p-2 text-gray-700 hover:bg-orange-50 rounded-md transition-colors duration-200">
+                                    - Total Sales
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="flex items-center p-2 text-gray-700 hover:bg-orange-50 rounded-md transition-colors duration-200">
+                                    - Revenue Trends
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <!-- Customer Insights -->
+                    <li>
+                        <button class="flex items-center justify-between w-full p-2 text-gray-700 hover:bg-orange-50 rounded-md"  onclick="toggleSidebarSubmenu('sidebar-submenu-2')">
+                            <div class="flex items-center">
+                                <i class="fas fa-users mr-2"></i> Customer Insights
+                            </div>
+                            <i :class="openSubmenu === 'customers' ? 'fas fa-chevron-up' : 'fas fa-chevron-down'" class="text-sm"></i>
+                        </button>
+                        <ul id="sidebar-submenu-2" class="bg-gray-100 mt-2 pl-4 overflow-hidden transition-all duration-300 max-h-0">
+                            <li>
+                                <a href="#" class="flex items-center p-2 text-gray-700 hover:bg-orange-50 rounded-md transition-colors duration-200">
+                                    New vs. Returning
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="flex items-center p-2 text-gray-700 hover:bg-orange-50 rounded-md transition-colors duration-200">
+                                    Customer Feedback
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <!-- Inventory & Stock -->
+                    <li>
+                        <button class="flex items-center justify-between w-full p-2 text-gray-700 hover:bg-orange-50 rounded-md"  onclick="toggleSidebarSubmenu('sidebar-submenu-3')">
+                            <div class="flex items-center">
+                                <i class="fas fa-boxes mr-2"></i> Inventory & Stock
+                            </div>
+                            <i :class="openSubmenu === 'inventory' ? 'fas fa-chevron-up' : 'fas fa-chevron-down'" class="text-sm"></i>
+                        </button>
+                        <ul id="sidebar-submenu-3" class="bg-gray-100 mt-2 pl-4 overflow-hidden transition-all duration-300 max-h-0">
+                            <!-- add products -->
+                            <li>
+                                <a href="{% url 'add_product' %}" class="flex items-center p-2 text-gray-700 hover:bg-orange-50 rounded-md transition-colors duration-200">
+                                    - Add Product
+                                </a>
+                            </li>
+                            <!-- view products -->
+                            <li>
+                                <a href="{% url 'vendor_products' %}" class="flex items-center p-2 text-gray-700 hover:bg-orange-50 rounded-md transition-colors duration-200">
+                                    - View All Products
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="flex items-center p-2 text-gray-700 hover:bg-orange-50 rounded-md transition-colors duration-200">
+                                    - Low Stock Alerts
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="flex items-center p-2 text-gray-700 hover:bg-orange-50 rounded-md transition-colors duration-200">
+                                    - Stock Levels
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <!-- Order & Fulfillment -->
+                    <li>
+                        <button class="flex items-center justify-between w-full p-2 text-gray-700 hover:bg-orange-50 rounded-md"  onclick="toggleSidebarSubmenu('sidebar-submenu-4')">
+                            <div class="flex items-center">
+                                <i class="fas fa-shipping-fast mr-2"></i> Order & Fulfillment
+                            </div>
+                            <i :class="openSubmenu === 'orders' ? 'fas fa-chevron-up' : 'fas fa-chevron-down'" class="text-sm"></i>
+                        </button>
+                        <ul id="sidebar-submenu-4" class="bg-gray-100 mt-2 pl-4 overflow-hidden transition-all duration-300 max-h-0">
+                            <li>
+                                <a href="#" class="flex items-center p-2 text-gray-700 hover:bg-orange-50 rounded-md transition-colors duration-200">
+                                    Pending Orders
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="flex items-center p-2 text-gray-700 hover:bg-orange-50 rounded-md transition-colors duration-200">
+                                    Completed Orders
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <!-- Marketing & Engagement
+                    <li>
+                        <button class="flex items-center justify-between w-full p-2 text-gray-700 hover:bg-orange-50 rounded-md"  onclick="toggleSidebarSubmenu('sidebar-submenu-5')">
+                            <div class="flex items-center">
+                                <i class="fas fa-bullhorn mr-2"></i> Marketing
+                            </div>
+                            <i :class="openSubmenu === 'marketing' ? 'fas fa-chevron-up' : 'fas fa-chevron-down'" class="text-sm"></i>
+                        </button>
+                        <ul id="sidebar-submenu-5" class="bg-gray-100 mt-2 pl-4 overflow-hidden transition-all duration-300 max-h-0">
+                            <li>
+                                <a href="#" class="flex items-center p-2 text-gray-700 hover:bg-orange-50 rounded-md transition-colors duration-200">
+                                    Campaigns
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="flex items-center p-2 text-gray-700 hover:bg-orange-50 rounded-md transition-colors duration-200">
+                                    Conversion Rates
+                                </a>
+                            </li>
+                        </ul>
+                    </li> -->
+
+                    <!-- Competitor & Market Trends -->
+                    <li>
+                        <button class="flex items-center justify-between w-full p-2 text-gray-700 hover:bg-orange-50 rounded-md"  onclick="toggleSidebarSubmenu('sidebar-submenu-6')">
+                            <div class="flex items-center">
+                                <i class="fas fa-chart-bar mr-2"></i> Market Trends
+                            </div>
+                            <i :class="openSubmenu === 'competitor' ? 'fas fa-chevron-up' : 'fas fa-chevron-down'" class="text-sm"></i>
+                        </button>
+                        <ul id="sidebar-submenu-6" class="bg-gray-100 mt-2 pl-4 overflow-hidden transition-all duration-300 max-h-0">
+                            <li>
+                                <a href="#" class="flex items-center p-2 text-gray-700 hover:bg-orange-50 rounded-md transition-colors duration-200">
+                                    Price Comparison
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="flex items-center p-2 text-gray-700 hover:bg-orange-50 rounded-md transition-colors duration-200">
+                                    Market Analysis
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <!-- Financial Insights -->
+                    <li>
+                        <button class="flex items-center justify-between w-full p-2 text-gray-700 hover:bg-orange-50 rounded-md"  onclick="toggleSidebarSubmenu('sidebar-submenu-7')">
+                            <div class="flex items-center">
+                                <i class="fas fa-wallet mr-2"></i> Financial Insights
+                            </div>
+                            <i :class="openSubmenu === 'finance' ? 'fas fa-chevron-up' : 'fas fa-chevron-down'" class="text-sm"></i>
+                        </button>
+                        <ul id="sidebar-submenu-7" class="bg-gray-100 mt-2 pl-4 overflow-hidden transition-all duration-300 max-h-0">
+                            <li>
+                                <a href="#" class="flex items-center p-2 text-gray-700 hover:bg-orange-50 rounded-md transition-colors duration-200">
+                                    Pending Payouts
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="flex items-center p-2 text-gray-700 hover:bg-orange-50 rounded-md transition-colors duration-200">
+                                    Revenue Reports
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <!-- AI Predictions & Recommendations -->
+                    <li>
+                        <button class="flex items-center justify-between w-full p-2 text-gray-700 hover:bg-orange-50 rounded-md"  onclick="toggleSidebarSubmenu('sidebar-submenu-8')">
+                            <div class="flex items-center">
+                                <i class="fas fa-robot mr-2"></i> AI Predictions
+                            </div>
+                            <i :class="openSubmenu === 'ai' ? 'fas fa-chevron-up' : 'fas fa-chevron-down'" class="text-sm"></i>
+                        </button>
+                        <ul id="sidebar-submenu-8" class="bg-gray-100 mt-2 pl-4 overflow-hidden transition-all duration-300 max-h-0">
+                            <li>
+                                <a href="#" class="flex items-center p-2 text-gray-700 hover:bg-orange-50 rounded-md transition-colors duration-200">
+                                    Sales Forecast
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="flex items-center p-2 text-gray-700 hover:bg-orange-50 rounded-md transition-colors duration-200">
+                                    Recommendations
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <!-- Profile -->
+                    <li>
+                        <a href="{% url 'user_profile' %}" class="flex items-center p-2 text-gray-700 hover:bg-orange-50 rounded-md transition-colors duration-200">
+                            <i class="fas fa-user mr-2"></i> Profile
+                        </a>
+                    </li>
+
+                    <!-- Log Out -->
+                    <li>
+                        <a href="{% url 'user_logout' %}" class="flex items-center p-2 text-gray-700 hover:bg-orange-50 rounded-md transition-colors duration-200">
+                            <i class="fas fa-sign-out-alt mr-2"></i> Log Out
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

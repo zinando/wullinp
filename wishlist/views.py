@@ -27,8 +27,6 @@ def wishlist(request):
     user = User.objects.get(id=id)
     if not user:
         return redirect('4_oh_4')
-    # wishlist = MySavedProduct.objects.filter(user=user).all()
-    # wishlist_serializer = MySavedProductSerializer(wishlist, many=True)
     user_serializer = UserSerializer(user)
     wishlist = user_serializer.data['wishlist']
     return render(request, 'wishlist.html', {'wishlist': wishlist, 'owner': f'{user.first_name} {user.last_name}', 'request_url': request.build_absolute_uri()})
@@ -63,8 +61,8 @@ class WishlistView(APIView):
             'user': User.objects.get(id=request.user.id),
             'product': Products.objects.get(id=request.data['productId']),
             'quantity': request.data['quantity'],
-            'size': request.data['size'],
-            'color': request.data['color'],
+            'size': request.data.get('size', None),
+            'color': request.data.get('color', None),
             'gender': request.data.get('gender', None),
         }
         my_carts = [CartItem(**cart_data)]
@@ -82,8 +80,8 @@ class WishlistView(APIView):
         if MySavedProduct.objects.filter(product=request.data['productId'], user=request.user).exists():
             product = MySavedProduct.objects.get(product=request.data['productId'], user=request.user)
             product.quantity = request.data['quantity']
-            product.size = request.data['size']
-            product.color = request.data['color']
+            product.size = request.data.get('size', None)
+            product.color = request.data.get('color', None)
             product.shipping_cost = shipping_cost
             product.shipping_info = user_address
             product.gender = request.data.get('gender', None)
@@ -93,8 +91,8 @@ class WishlistView(APIView):
                 product=Products.objects.get(id=request.data['productId']),
                 user=request.user,
                 quantity=request.data['quantity'],
-                size=request.data['size'],
-                color=request.data['color'],
+                size=request.data.get('size', None),
+                color=request.data.get('color', None),
                 gender=request.data.get('geder', None),
                 shipping_cost=shipping_cost,
                 shipping_info=user_address,

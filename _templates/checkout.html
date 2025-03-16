@@ -455,18 +455,14 @@
 
   // Function to remove an item from the cart
   function removeFromCart(cartId, productId, color, size) {
+    color = color === "None" || color === null || color === '' ? null : color;
+    size = size === "None" || size === null || size === '' ? null : size;
     wullinp.cart.removeItem(parseInt(productId), color, size);
-    fetch("{% url 'modify-cart' %}", {
-      method: "POST",
-      body: JSON.stringify({ itemId: parseInt(cartId), action: "delete" }),
-      headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.status == 1) {
-          window.location.reload();
-        }
-      });
+    
+    // delay to allow the cart to update before reloading the page
+    setTimeout(() => {
+      window.location.reload();
+    }, 500);
   }
 
   // Function to apply a coupon

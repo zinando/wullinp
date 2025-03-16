@@ -14,7 +14,7 @@ from _core.utils.helpers import calculate_shipping_cost, prepare_order, log_pays
 from _core.utils.raw_data import pickup_locations
 
 # Create your views here.
-@login_required(login_url='user_login')
+@login_required(login_url='user_login') 
 @api_view(['GET','POST', 'PUT'])
 def checkoutView(request):
     cart_items = []
@@ -122,7 +122,6 @@ def sync_cart(request, cartItems):
         if product is None:
             continue
 
-        # check if the item already exists in the cart with same attributes otherwise create a new one
         cart_item = CartItem.objects.create(
             user=request.user,
             product=product,
@@ -130,11 +129,6 @@ def sync_cart(request, cartItems):
             size=item.get('size', None),
             color=item.get('color', None),
             gender=item.get('gender', None)
-            # defaults={
-            #     "quantity": item['quantity'],
-            #     "size": item.get('size', None),
-            #     "color": item.get('color', None),
-            # }
         )
         cart_item_serializer = CartItemSerializer(cart_item)
         cart_items.append(cart_item_serializer.data)

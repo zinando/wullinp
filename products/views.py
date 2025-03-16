@@ -256,6 +256,12 @@ def add_product(request):
             cprice=float(product_data.get('cprice')),
             preprice=float(product_data.get('preprice')),
             min_quantity=product_data.get('min_quantity'),
+            sizes=process_sizes(product_data),
+            colors=process_colors(product_data),
+            length=float(product_data.get('length')),
+            width=float(product_data.get('width')),
+            height=float(product_data.get('height')),
+            weight=float(product_data.get('weight')),
             #vat=product_data.get('vat'),
             #product_brand=product_data.get('product_brand'),
             product_status='draft',
@@ -273,4 +279,18 @@ def add_product(request):
 
     return Response({"success": message, "product_id": product_id}, status=status.HTTP_201_CREATED)
 
+def process_sizes(data):
+    sizes = data.get('sizes')
+    sizes = sizes.split(',')
+    sizes = [size.strip() for size in sizes]
+    if len(sizes) > 0:
+        return sizes
+    return None
 
+def process_colors(data):
+    colors = data.get('colors')
+    colors = colors.split(',')
+    colors = [color.strip() for color in colors]
+    if len(colors) > 0:
+        return colors
+    return None

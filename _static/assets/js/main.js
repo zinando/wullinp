@@ -37,6 +37,7 @@
     // Initialize Wullinp
     // ======================
     var wullinp = new Wullinp();
+    
 
     // Function to get CSRF token from cookies
     function getCSRFToken() {
@@ -178,44 +179,15 @@
         }, 3000);
     }
 
-    // class Cart {
-    //     constructor() {
-    //         this.cart = JSON.parse(localStorage.getItem("cart")) || {};
-    //         this.updateCartCount();
-    //     }
-    
-    //     addToCart(productId, productName, attributes) {
-    //         if (this.cart[productId]) {
-    //             this.cart[productId].quantity += attributes.quantity;
-    //         } else {
-    //             this.cart[productId] = { name: productName, ...attributes };
-    //         }
-    //         this.saveCart();
-    //         showToast(`${productName} added to cart`, "success");
-    //     }
-    
-    //     saveCart() {
-    //         localStorage.setItem("cart", JSON.stringify(this.cart));
-    //         this.updateCartCount();
-    //     }
-    
-    //     updateCartCount() {
-    //         let count = Object.keys(this.cart).length;
-    //         document.getElementById("cart-count").textContent = count;
-    //     }
-    // }
-
-    // const cart = new Cart();
-
     // Function to open the product attributes modal
     function openProductAttributesModal(productId, productName, stockCount, weight, width, height, length, sizes, colors, price, type='cart') {
         // if type is wishlist, unhide the address and delivery type elements
         if(type != 'cart'){
-            console.log('wishlist');
+            //console.log('wishlist');
             document.getElementById("wishAddressSelector").classList.remove("hidden");
             document.getElementById("wishDeliveryTypeSelector").classList.remove("hidden");
         } else {
-            console.log('cart');
+            //console.log('cart');
             document.getElementById("wishAddressSelector").classList.add("hidden");
             document.getElementById("wishDeliveryTypeSelector").classList.add("hidden");
         }
@@ -243,6 +215,8 @@
                 sizeDropdown.append(`<option value="${size}">${size}</option>`);
             });
         } else {
+            // assign it a value of null and hide the size selection
+            $("#modalSize").val(null);
             $("#sizeSelection").addClass("hidden");
         }
     
@@ -254,6 +228,8 @@
                 colorDropdown.append(`<option value="${color}">${color}</option>`);
             });
         } else {
+            // assign it a value of null and hide the color selection
+            $("#modalColor").val(null);
             $("#colorSelection").addClass("hidden");
         }
     
@@ -277,12 +253,11 @@
             let width = parseFloat($(this).data("width"));
             let height = parseFloat($(this).data("height"));
             let length = parseFloat($(this).data("length"));
-            let sizes = "[24, 26, 28, 30, 32]"; //$(this).data("sizes"); // Expected to be an array
-            let colors = '["red", "blue", "green", "black", "silver"]'; //$(this).data("colors"); // Expected to be an array
+            let sizes = $(this).data('sizes'); // expected to be a string array
+            let colors = $(this).data("colors"); // expected to be a string array
 
-            // if sizes and colors are strings, convert them to arrays
-            sizes = JSON.parse(sizes || "[]");
-            colors = JSON.parse(colors || "[]");
+            sizes = sizes !== null && sizes !== 'null' && sizes !== '' && sizes !== 'None' ? sizes.split(',').filter(value => value !== null && value !== undefined && value !== "") : null;
+            colors = colors !== null && colors !== 'null' && colors !== '' && colors !== 'None' ? colors.split(',').filter(value => value !== null && value !== undefined && value !== "") : null;
 
             openProductAttributesModal(productId, productName, stockCount, weight, width, height, length, sizes, colors, price);
         });
@@ -303,12 +278,11 @@
             let width = parseFloat($(this).data("width"));
             let height = parseFloat($(this).data("height"));
             let length = parseFloat($(this).data("length"));
-            let sizes = "[24, 26, 28, 30, 32]"; //$(this).data("sizes"); // Expected to be an array
-            let colors = '["red", "blue", "green", "black", "silver"]'; //$(this).data("colors"); // Expected to be an array
+            let sizes = $(this).data('sizes'); // expected to be a string array
+            let colors = $(this).data("colors"); // expected to be a string array
 
-            // if sizes and colors are strings, convert them to arrays
-            sizes = JSON.parse(sizes || "[]");
-            colors = JSON.parse(colors || "[]");
+            sizes = sizes !== null && sizes !== 'null' && sizes !== '' && sizes !== 'None' ? sizes.split(',').filter(value => value !== null && value !== undefined && value !== "") : null;
+            colors = colors !== null && colors !== 'null' && colors !== '' && colors !== 'None' ? colors.split(',').filter(value => value !== null && value !== undefined && value !== "") : null;
 
             openProductAttributesModal(productId, productName, stockCount, weight, width, height, length, sizes, colors, price, 'wishlist');
         });
@@ -349,8 +323,8 @@
             }
         
             let attributes = { quantity };
-            if (size) attributes.size = size;
-            if (color) attributes.color = color;
+            attributes.size = size;
+            attributes.color = color;
             
             let item = { productId, productName, price, weight, width, height, length, deliveryMethod, addressId, deliveryType, ...attributes };
             // Add item to cart or wishlist

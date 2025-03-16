@@ -1,154 +1,148 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<style>
+    /* Custom styles for cards */
+    .card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
+<!-- Dashboard Section -->
+<div class="min-h-screen bg-gray-100 p-6">
+    <div class="container mx-auto">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <!-- Sidebar -->
+            <div class="lg:col-span-1">
+                {% include "sidebar.html" %}
+            </div>
 
-<div class="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-    <div class="bg-white p-6 rounded-lg shadow-md w-full max-w-lg">
-        <h2 class="text-2xl font-bold text-gray-800 text-center mb-4">Profile Information</h2>
+            <!-- Main Content -->
+            <div class="lg:col-span-3">
+                <!-- Profile Header -->
+                <div class="text-center mb-8">
+                    <h1 class="text-3xl font-bold text-gray-800">User Profile</h1>
+                </div>
 
-        <!-- Display User Details -->
-        <div class="text-center text-gray-700">
-            <p><strong>Username:</strong> {{ user.username }}</p>
-            <p><strong>Email:</strong> {{ user.email }}</p>
-            <p><strong>Phone:</strong> {{ user.profile.phone }}</p>
+                <!-- Profile Information -->
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <div class="text-center text-gray-700">
+                        <p><strong>Username:</strong> {{ user.username }}</p>
+                        <p><strong>Email:</strong> {{ user.email }}</p>
+                        <p><strong>Phone:</strong> {{ user.profile.phone }}</p>
+                        <p><strong>First Name:</strong> {{ user.first_name }}</p>
+                        <p><strong>Last Name:</strong> {{ user.last_name }}</p>
+                        <p><strong>Address:</strong> {{ user.profile.address }}</p>
+                    </div>
 
-            {% if user.profile.user_type == "vendor" %}
-                <p><strong>Business Name:</strong> {{ user.profile.business_name }}</p>
-                <p><strong>Business Address:</strong> {{ user.profile.address }}</p>
-            {% else%}
-                <p><strong>First Name:</strong> {{ user.first_name }}</p>
-                <p><strong>Last Name:</strong> {{ user.last_name }}</p>
-                <p><strong>Address:</strong> {{ user.profile.address }}</p>
-            {% endif %}
+                    <!-- Edit Profile Button (Opens Modal) -->
+                    <div class="text-center mt-4">
+                        <a href="#" onclick="openModal()" class="text-sm text-indigo-600 hover:underline">Edit Profile</a>
+                        <span class="mx-2 text-gray-400">|</span>
+                        <a href="#" onclick="openPasswordModal()" class="text-sm text-indigo-600 hover:underline">Change Password</a>
+                    </div>
+                </div>
+
+                <!-- Modal Dialog for Editing Profile -->
+                <div id="profileModal" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 hidden">
+                    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md relative">
+                        <button onclick="closeModal()" class="absolute top-2 right-2 text-gray-600 hover:text-gray-900">✖</button>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Edit Profile</h3>
+
+                        <form id="edit_profile_form" method="POST" class="space-y-4">
+                            {% csrf_token %}
+                            <input id="user_type" data-user_id="{{ user.id }}" type="hidden" name="user_type" value="user">
+
+                            <!-- Common Fields -->
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-600">Phone Number</label>
+                                <input type="number" name="phone" value="{{ user.profile.phone }}" required
+                                       class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500" minlength="11">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-600">Email</label>
+                                <input type="email" name="email" value="{{ user.email }}" required
+                                       class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-600">Address</label>
+                                <input type="text" name="address" value="{{ user.profile.address }}"
+                                       class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                            </div>
+
+                            <!-- User-Specific Fields -->
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-600">First Name</label>
+                                <input type="text" name="first_name" required value="{{ user.first_name }}"
+                                       class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-600">Last Name</label>
+                                <input type="text" name="last_name" required value="{{ user.last_name }}"
+                                       class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                            </div>
+
+                            <!-- Error Message -->
+                            <div>
+                                <p id="error_message" class="text-red-500 text-sm"></p>
+                            </div>
+
+                            <button type="submit" class="w-full bg-purple-600 text-white p-2 rounded hover:bg-purple-700">
+                                Save Changes
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Modal Dialog for Changing Password -->
+                <div id="passwordModal" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 hidden">
+                    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md relative">
+                        <button onclick="closePasswordModal()" class="absolute top-2 right-2 text-gray-600 hover:text-gray-900">✖</button>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Change Password</h3>
+
+                        <form id="change_password_form" method="POST" class="space-y-4">
+                            {% csrf_token %}
+                            <input type="hidden" name="user_id" value="{{ user.id }}">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-600">Current Password</label>
+                                <input type="password" name="current_password" required
+                                       class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-600">New Password</label>
+                                <input type="password" name="new_password" required
+                                       class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-600">Confirm New Password</label>
+                                <input type="password" name="confirm_password" required
+                                       class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
+                            </div>
+
+                            <!-- Error Message -->
+                            <div>
+                                <p id="password_error_message" class="text-red-500 text-sm"></p>
+                            </div>
+
+                            <button id="password_submit" type="submit" class="w-full bg-purple-600 text-white p-2 rounded hover:bg-purple-700">
+                                Change Password
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
-
-        <!-- Edit Profile Button (Opens Modal) -->
-        <div class="text-center mt-4">
-            <a href="#" onclick="openModal()" class="text-sm text-indigo-600 hover:underline">Edit Profile</a>
-            <span class="mx-2 text-gray-400">|</span>
-            <a href="#" onclick="openPasswordModal()" class="text-sm text-indigo-600 hover:underline">Change Password</a>
-        </div>
-        <!-- <div class="text-center mt-4">
-            <button onclick="openModal()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
-                Edit Profile
-            </button>
-        </div> -->
     </div>
 </div>
-
-<!-- Modal Dialog for Editing Profile -->
-<div id="profileModal" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 hidden">
-    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md relative">
-        <button onclick="closeModal()" class="absolute top-2 right-2 text-gray-600 hover:text-gray-900">✖</button>
-        <h3 class="text-xl font-semibold text-gray-800 mb-4">Edit Profile</h3>
-
-        <form id="edit_profile_form" method="POST" class="space-y-4">
-            {% csrf_token %}
-            <!-- create a hidden input field with the name user_type and value user.profile.user_type -->
-            <input id="user_type" data-user_id="{{user.id}}" type="hidden" name="user_type" value="{{ user.profile.user_type }}">
-
-            <!-- Common Fields -->
-            <div>
-                <label class="block text-sm font-semibold text-gray-600">Phone number (user ID)</label>
-                <input type="number" name="phone" value="{{ user.profile.phone }}" required
-                       class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500" minlength=11>
-            </div>
-            <!--add email and phone Number-->
-            <div>
-                <label class="block text-sm font-semibold text-gray-600">Email</label>
-                <input type="email" name="email" value="{{ user.email }}" required
-                       class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
-            </div>
-            <div>
-                <label class="block text-sm font-semibold text-gray-600">
-                    {% if user.profile.user_type == 'vendor' %} Business Address {% else %} 
-                    Address
-                    {% endif %}
-                </label>
-                <input type="text" name="address" 
-                {% if user.profile.user_type == 'vendor' %} required {% endif %}
-                value="{{ user.profile.address }}"
-                       class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
-            </div>
-            
-            <!-- User-Specific Fields -->
-            {% if user.profile.user_type == "user" %}
-            <div>
-                <label class="block text-sm font-semibold text-gray-600">First Nmae</label>
-                <input type="text" name="first_name" required value="{{ user.first_name }}"
-                       class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
-            </div>
-
-            <div>
-                <label class="block text-sm font-semibold text-gray-600">Last Name</label>
-                <input type="text" name="last_name" required value="{{ user.last_name }}"
-                       class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
-            </div>
-            {% endif %}
-            <!-- Vendor-Specific Fields -->
-            {% if user.profile.user_type == "vendor" %}
-            <div>
-                <label class="block text-sm font-semibold text-gray-600">Business Name</label>
-                <input type="text" name="business_name" value="{{ user.profile.business_name }}" required
-                       class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
-            </div>
-            {% endif %}
-
-            <!-- show error message here -->
-            <div>
-                <p id="error_message" class="text-red-500 text-sm"></p>
-            </div>
-
-            <button type="submit" class="w-full bg-purple-600 text-white p-2 rounded hover:bg-purple-700">
-                Save Changes
-            </button>
-        </form>
-    </div>
-</div>
-
-<!-- Modal Dialog for Changing Password -->
-<div id="passwordModal" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 hidden">
-    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md relative">
-        <button onclick="closePasswordModal()" class="absolute top-2 right-2 text-gray-600 hover:text-gray-900">✖</button>
-        <h3 class="text-xl font-semibold text-gray-800 mb-4">Change Password</h3>
-
-        <form id="change_password_form" method="POST" class="space-y-4">
-            {% csrf_token %}
-            <!-- hidden input field with user_id -->
-            <input type="hidden" name="user_id" value="{{ user.id }}">
-            <div>
-                <label class="block text-sm font-semibold text-gray-600">Current Password</label>
-                <input type="password" name="current_password" required
-                       class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
-            </div>
-
-            <div>
-                <label class="block text-sm font-semibold text-gray-600">New Password</label>
-                <input type="password" name="new_password" required
-                       class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
-            </div>
-
-            <div>
-                <label class="block text-sm font-semibold text-gray-600">Confirm New Password</label>
-                <input type="password" name="confirm_password" required
-                       class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-purple-500">
-            </div>
-
-            <!-- show error message here -->
-            <div>
-                <p id="password_error_message" class="text-red-500 text-sm"></p>
-            </div>
-
-            <button id="password_submit" type="submit" class="w-full bg-purple-600 text-white p-2 rounded hover:bg-purple-700">
-                Change Password
-            </button>
-        </form>
-    </div>
-</div>
-
 {% endblock %}
 
 {% block extra_js %}
-
 <!-- JavaScript for Modal -->
 <script>
     function openModal() {
@@ -170,149 +164,39 @@
     document.getElementById("edit_profile_form").addEventListener("submit", async (e) => {
         e.preventDefault();
         document.getElementById("error_message").innerText = "";
-        var user_type = document.getElementById("user_type").value;
-        var phone = document.querySelector("input[name=phone]").value;
-        var email = document.querySelector("input[name=email]").value;
-        var url = user_type == "user" ? "{% url 'update_user_profile' %}" : "{% url 'update_vendor_profile' %}";
-        var user_id = document.getElementById("user_type").getAttribute("data-user_id");
-        var address = document.querySelector("input[name=address]").value;
-        
-        if (!validatePhoneNumber(phone)) {
-            document.getElementById("error_message").innerText = "Invalid phone number. Must be 11 digits at least";
-            return;
-        }
-        // extract last 10 digits from phone number
-        console.log(phone);
-        var profile_fields = {'phone':phone, 'address':address};
-        var user_fields = {'username':phone.slice(-10), 'email':email};
-        if (user_type == "user") {
-            user_fields['first_name'] = document.querySelector("input[name=first_name]").value;
-            user_fields['last_name'] = document.querySelector("input[name=last_name]").value;
-        } else if (user_type == "vendor") {
-            user_fields['first_name'] = document.querySelector("input[name=business_name]").value.split(" ")[0];
-            user_fields['last_name'] = document.querySelector("input[name=business_name]").value.split(" ")[1];
-            profile_fields['business_name'] = document.querySelector("input[name=business_name]").value;
-        }
-        user_fields['profile'] = profile_fields;
-
-        var formData = {};
-        formData['user_id'] = user_id;
-        formData['table_fields'] = user_fields;
-        
-        const response = await fetch(url, {
-            method: "PUT",
+        const formData = new FormData(document.getElementById("edit_profile_form"));
+        const response = await fetch("{% url 'update_user_profile' %}", {
+            method: "POST",
             headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": getCSRFToken()  // Ensure CSRF token is included
+                "X-CSRFToken": "{{ csrf_token }}",
             },
-            body: JSON.stringify(formData),
+            body: formData,
         });
         if (response.ok) {
             window.location.reload();
         } else {
-            var result = await response.json();
-            result.errors? document.getElementById("error_message").innerText = result.errors + "\n" : "";
-            result.username? document.getElementById("error_message").innerText = result.username + "\n" : "";
-            result.email? document.getElementById("error_message").innerText += result.email + "\n" : "";
-            result.first_name? document.getElementById("error_message").innerText += result.first_name + "\n" : "";
-            result.last_name? document.getElementById("error_message").innerText += result.last_name + "\n" : "";
-            if (result.profile) {
-                result.profile.phone? document.getElementById("error_message").innerText += result.profile.phone + "\n" : "";
-                result.profile.address? document.getElementById("error_message").innerText += result.profile.address + "\n" : "";
-                result.profile.business_name? document.getElementById("error_message").innerText += result.profile.business_name + "\n" : "";
-            }
-            return ;
+            const result = await response.json();
+            document.getElementById("error_message").innerText = result.error || "An error occurred.";
         }
     });
-    // function to validate phone number
-    function validatePhoneNumber(phone) {
-        var phonePattern = /^\d{11}$/;
-        return phonePattern.test(phone);
-    }
 
-    // function to add submit event listener to the change password form
     document.getElementById("change_password_form").addEventListener("submit", async (e) => {
         e.preventDefault();
-        // show loading spinner
-        showLoading(document.getElementById("password_submit"));
-
         document.getElementById("password_error_message").innerText = "";
-        var current_password = document.querySelector("input[name=current_password]").value;
-        var new_password = document.querySelector("input[name=new_password]").value;
-        var confirm_password = document.querySelector("input[name=confirm_password]").value;
-        var url = "{% url 'change_user_password' %}";
-        var user_id = document.querySelector("input[name=user_id]").value;
-
-        if (new_password != confirm_password) {
-            document.getElementById("password_error_message").innerText = "Passwords do not match";
-            hideLoading(document.getElementById("password_submit"), "Change Password");
-            return;
-        }
-
-        if (!validatePassword(new_password)) {
-            document.getElementById("password_error_message").innerText = "Password must contain at least one uppercase letter, one lowercase letter, one digit, one special character, and be at least 8 characters long.";
-            hideLoading(document.getElementById("password_submit"), "Change Password");
-            return;
-        }
-
-        const response = await fetch(url, {
-            method: "PUT",
+        const formData = new FormData(document.getElementById("change_password_form"));
+        const response = await fetch("{% url 'change_user_password' %}", {
+            method: "POST",
             headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": getCSRFToken()  // Ensure CSRF token is included
+                "X-CSRFToken": "{{ csrf_token }}",
             },
-            body: JSON.stringify({'user_id': user_id,'current_password':current_password, 'new_password': new_password}),
+            body: formData,
         });
         if (response.ok) {
-            hideLoading(document.getElementById("password_submit"), "Change Password");
             window.location.reload();
         } else {
-            var result = await response.json();
-            result.errors? document.getElementById("password_error_message").innerText = result.errors + "\n" : "";
-
-            // hide loading spinner
-            hideLoading(document.getElementById("password_submit"), "Try Again");
-            return ;
+            const result = await response.json();
+            document.getElementById("password_error_message").innerText = result.error || "An error occurred.";
         }
     });
-
-    // function to validate password
-    function validatePassword(password) {
-        var passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
-        return passwordPattern.test(password);
-    }
-
-    // // function to show loading spinner
-    // function showLoading(selector) {
-    //     selector.innerHTML =
-    //   '<svg class="animate-spin h-5 w-5 mr-2 text-white" viewBox="0 0 24 24"> <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle> <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0116 0"></path> </svg> sending request...';
-    //     selector.disabled = true;
-    // }
-
-    // // function to hide loading spinner
-    // function hideLoading(selector, text) {
-    //     selector.innerHTML = text;
-    //     selector.disabled = false;
-    // }
-
-    // Function to get CSRF token from cookies
-    // function getCSRFToken() {
-    //     const name = "csrftoken";
-    //     let cookieValue = null;
-    //     if (document.cookie && document.cookie !== "") {
-    //         const cookies = document.cookie.split(";");
-    //         for (let i = 0; i < cookies.length; i++) {
-    //             const cookie = cookies[i].trim();
-    //             if (cookie.startsWith(name + "=")) {
-    //                 cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-    //                 break;
-    //             }
-    //         }
-    //     }
-    //     return cookieValue;
-    // }
-
-
 </script>
-
 {% endblock %}

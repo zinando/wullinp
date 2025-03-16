@@ -70,3 +70,4 @@ class UserSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(profile_serializer.errors)
 
         return instance
+    

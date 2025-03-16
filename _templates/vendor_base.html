@@ -1,38 +1,46 @@
 {% extends 'base.html' %}
 
+{% block extra_css %}
+<style>
+    /* Custom styles for cards */
+    .card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="flex">
-    <!-- Sidebar -->
-    <aside class="w-64 bg-white shadow-md h-screen p-4 hidden md:block">
-        <h2 class="text-xl font-semibold mb-4">Vendor Menu</h2>
-        <ul>
-            <li class="mb-2"><a href="{% url 'vendor_dashboard' %}" class="text-gray-700 hover:text-pink-500">Dashboard</a></li>
-            <li class="mb-2">
-                <button class="text-gray-700 hover:text-pink-500 w-full text-left" onclick="toggleSubmenu('products-menu')">Products ▼</button>
-                <ul id="products-menu" class="hidden ml-4">
-                    <li><a href="{% url 'vendor_products' %}" class="text-gray-600 hover:text-pink-400">My Products</a></li>
-                    <li><a href="{% url 'add_product' %}" class="text-gray-600 hover:text-pink-400">Add Product</a></li>
-                </ul>
-            </li>
-            <li class="mb-2"><a href="#" class="text-gray-700 hover:text-pink-500">Orders</a></li>
-            <li class="mb-2"><a href="#" class="text-gray-700 hover:text-pink-500">Profile</a></li>
-        </ul>
-    </aside>
-    
-    <!-- Main Content -->
-    <main class="flex-1 p-6">
-        {% block vendor_content %}
-        <!-- Vendor dashboard content will be injected here -->
-        {% endblock %}
-    </main>
+<!-- Vendor Dashboard Section -->
+<div class="min-h-screen bg-gray-100 p-6">
+    <div class="container mx-auto">
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            <!-- Sidebar -->
+            <div class="lg:col-span-1">
+                {% include "vendor_sidebar.html" %}
+            </div>
+
+            <!-- Main Content -->
+            <div class="lg:col-span-4">
+                <!-- Dashboard Header -->
+                <div class="text-center mb-8">
+                    <h1 class="text-3xl font-bold text-gray-800">Vendor Dashboard</h1>
+                </div>
+
+                <!-- Analytics Display -->
+                <div id="analytics-display">
+                    {% block vendor_content %}{% endblock %}
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
-{% block extra_js %}
-<script>
-    function toggleSubmenu(id) {
-        const submenu = document.getElementById(id);
-        submenu.classList.toggle('hidden');
-    }
-</script>
+{% block tail %}
+<!-- Alpine.js for Interactivity -->
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 {% endblock %}

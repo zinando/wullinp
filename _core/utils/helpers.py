@@ -130,7 +130,9 @@ def verify_order(request, order_details):
             return {'status':0, 'order': order_details, 'message':'Discount value is incorrect', 'error':[]}
     # Confirm total price
     total_price = sum(item.product.cprice * item.quantity for item in request.user.cart_items.all()) + order_details['shippingCost'] - order_details['discount']
-    if order_details['total'] != total_price:
+    
+    if float(order_details['total']) != float(total_price):
+        print('yes')
         return {'status':0, 'order': order_details, 'message':'Total price is incorrect', 'error':[]}
 
     return {'status':1, 'order': order_details, 'message':'Order verified successfully', 'error':[]}

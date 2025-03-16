@@ -57,6 +57,8 @@ class Products(models.Model):
     min_quantity = models.IntegerField(default=1)
     vat = models.DecimalField(max_digits=18, decimal_places=2, default=0.00)
     product_brand = models.IntegerField(blank=True, null=True)
+    sizes = models.JSONField(blank=True, null=True)
+    colors = models.JSONField(blank=True, null=True)
     stock = models.IntegerField(blank=False, null=False)
     featured = models.BooleanField(default=False)
     product_status = models.CharField(max_length=50, blank=False, null=False, default='inactive') # active, inactive, draft

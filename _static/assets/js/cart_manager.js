@@ -12,21 +12,14 @@ function CartManager(storage, user) {
     if (!this.storage.getItem(cartKey)) {
       this.storage.setItem(cartKey, []);
     }
-
-    // // check if user object has a cart items
-    // if (this.user.cartItems.length > 0) {
-    //   this.storage.setItem(cartKey, this.user.cartItems);
-    // } else {
-    //   //dont empty the cart
-
-    //   //this.storage.setItem(cartKey, []);
-    // }
     this.initCart();
 
     this.discountManager.init();
     this.shipmentManager.init(); // Initialize shipment manager
-    this.updateCartUI();
-    this.updateCartCount();
+    if (!user || !user.isVendor) {
+      this.updateCartUI();
+      this.updateCartCount();
+    }
   };
 
   this.initCart = function () {
@@ -96,11 +89,17 @@ function CartManager(storage, user) {
 
   this.removeItem = function (productId, color, size) {
       var cart = this.getCart();
+      color = color === "None" || color === null || color === '' || color === 'null' ? null : color;
+      size = size === "None" || size === null || size === '' || size === 'null' ? null : size;
+
+      console.log(`Removing item with productId: ${productId}, color: ${color}, size: ${size}`);
 
       // Find the item with the same productId, color, and size
       var itemIndex = cart.findIndex((i) => 
           i.productId === productId && i.color === color && i.size === size
       );
+
+      console.log(`item index: ${itemIndex}`);
 
       if (itemIndex !== -1) {
         cart.splice(itemIndex, 1); // Remove the item from the cart
