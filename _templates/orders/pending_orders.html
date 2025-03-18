@@ -1,0 +1,33 @@
+{% extends 'orders/order_base.html' %}
+
+{% block order_content %}
+<h3 class="text-xl font-bold text-gray-800 mb-4">Pending Orders</h3>
+<hr class="mb-4">
+<!-- Example Table -->
+<div class="overflow-x-auto">
+    <table class="min-w-full bg-white">
+        <thead>
+            <tr>
+                <th class="py-2 px-4 border-b">Order ID</th>
+                <th class="py-2 px-4 border-b">Customer</th>
+                <th class="py-2 px-4 border-b">Date</th>
+                <th class="py-2 px-4 border-b">Amount</th>
+                <th class="py-2 px-4 border-b">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="py-2 px-4 border-b">#12345</td>
+                <td class="py-2 px-4 border-b">John Doe</td>
+                <td class="py-2 px-4 border-b">2023-10-01</td>
+                <td class="py-2 px-4 border-b">₦25,000</td>
+                <td class="py-2 px-4 border-b">
+                    <button class="lg:bg-blue-500 text-blue-500 lg:text-white px-3 py-1 lg:rounded-md hover:bg-blue-600">Process</button>
+                    <button class="lg:bg-red-500 text-red-500 lg:text-white px-3 py-1 lg:rounded-md hover:bg-red-600">Cancel</button>
+                </td>
+            </tr>
+            <!-- Add more rows as needed -->
+        </tbody>
+    </table>
+</div>
+{% endblock %}

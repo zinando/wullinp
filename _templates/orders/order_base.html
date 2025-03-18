@@ -1,0 +1,66 @@
+{% extends 'vendor_base.html' %}
+
+{% block vendor_content %}
+<!-- Analytics Section -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 max-h-100 lg:max-h-48">
+    <!-- Pending vs. Completed Orders -->
+    <div class="card bg-white rounded-lg shadow-md p-4">
+        <div class="flex items-center">
+            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-tasks text-blue-500 text-xl"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-gray-600 text-sm">Pending vs. Completed</p>
+                <h3 class="lg:text-lg font-bold text-gray-800">Pending: 15 | Completed: 45</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Processing Time -->
+    <div class="card bg-white rounded-lg shadow-md p-4">
+        <div class="flex items-center">
+            <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-clock text-purple-500 text-xl"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-gray-600 text-sm">Avg. Processing Time</p>
+                <h3 class="lg:text-lg font-bold text-gray-800">2.5 Days</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shipping & Delivery Performance -->
+    <div class="card bg-white rounded-lg shadow-md p-4">
+        <div class="flex items-center">
+            <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-truck text-green-500 text-xl"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-gray-600 text-sm">Shipping Performance</p>
+                <h3 class="lg:text-lg font-bold text-gray-800">On-Time: 90% | Delays: 10%</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cancelled Orders & Reasons -->
+    <div class="card bg-white rounded-lg shadow-md p-4">
+        <div class="flex items-center">
+            <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-times-circle text-red-500 text-xl"></i>
+            </div>
+            <div class="ml-3">
+                <p class="text-gray-600 text-sm">Cancelled Orders</p>
+                <h3 class="lg:text-lg font-bold text-gray-800">5 Orders</h3>
+                <p class="text-xs text-gray-500">Top Reason: Out of Stock</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Content Section for Order Tables -->
+<div class="bg-white rounded-lg shadow-md p-6">
+    {% block order_content %}
+    <!-- This block will be overridden by child templates to display order tables and action buttons -->
+    {% endblock %}
+</div>
+{% endblock %}
